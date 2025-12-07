@@ -6,11 +6,11 @@ import { SearchContextProvider } from './components/context/SearchContext.jsx'
 import { AuthContext, AuthContextProvider } from './components/context/AuthContext.jsx'
 
 createRoot(document.getElementById('root')).render(
-  <StrictMode>
+
     <AuthContextProvider>
       <SearchContextProvider>
         <App />
       </SearchContextProvider>
     </AuthContextProvider>
-  </StrictMode>,
+
 )

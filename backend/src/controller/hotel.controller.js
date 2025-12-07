@@ -93,6 +93,7 @@ const deleteHotel = asynHandler( async (req, res) => {
 })
 
 const getHotel = asynHandler(async (req,res) => {
+        console.log("get the Hotel")
         const hotelid = req.params.id
         console.log(hotelid)
 
@@ -110,29 +111,52 @@ const getHotel = asynHandler(async (req,res) => {
 
 })
 
-const getAllHotel = asynHandler(async (req,res) => {
-        const { min, max, limit ,city ,...others } = req.query
-        let query ={...others,
-            featured:true,
-            cheapestPrice: { $gt: min || 400 , $lt: max || 5000},
-            
-        } 
+const getAllHotel = asynHandler(async (req, res) => {
+    console.log("++++++++++++++++++++++++++++ enter")
+  console.log("get all the hotel");
+  console.log(req.query)
 
-        if(req.query.city) {
-           query.city = { $regex: new RegExp(`^${city.trim()}$`, "i") }; 
-        }
+  let { min , max , limit = 3, page = 1, city, ...others } = req.query;
 
-        const hotels = await Hotels.find(query).limit(parseInt(req.query.limit))
+    limit = Number(limit);
+    page = Number(page);
 
+  const filters = {
+    ...others,
+    featured: true,
+  };
 
-        console.log(hotels)
-        return res
-        .status(200)
-        .json(new ApiResponse( 200 , hotels , "here are the result"))
+  if (max && min){
+    filters.cheapestPrice= { $gt: min, $lt: max}
+  }
 
+  if (city) {
+    filters.city = { $regex: new RegExp(city.trim(), "i") };
+  }
 
+  const skip = (page - 1) * limit;
 
-})
+  const hotels = await Hotels.find(filters)
+    .skip(skip)              
+    .limit(limit);
+
+  const totalHotels = await Hotels.countDocuments(filters);
+  console.log("-----------------------------------------------> sending response")
+  console.log(page )
+  return res.status(200).json(
+    new ApiResponse(
+      200,
+      {
+        hotels,
+        totalHotels,
+        totalPages: Math.ceil(totalHotels / limit),
+        currentPage: page,
+      },
+      "Hotels fetched with pagination"
+    )
+  );
+});
+
 
 const countByCity = asynHandler(async (req,res) => {
     const cities = req.query.cities.split(",")
@@ -196,8 +220,7 @@ const countByCity = asynHandler(async (req,res) => {
 // })
 
 const countByType = asynHandler(async (req,res) => {
-
-
+    console.log("count by the type")
     const [hotelCount, apartmentCount, resortCount, villaCount, cabinCount] = await Promise.all([
     Hotels.countDocuments({ type: "hotel" }),
     Hotels.countDocuments({ type: "apartment" }),
@@ -216,6 +239,7 @@ const countByType = asynHandler(async (req,res) => {
 )
 
 const getHotelRooms = asynHandler(async (req,res) => {
+    console.log("get the hotel room")
     const hotel = await Hotels.findById(req.params.id)
 
     if (!hotel) {

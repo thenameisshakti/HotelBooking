@@ -1,18 +1,23 @@
+import { useNavigate } from "react-router"
 import useFetch from "../../hooks/useFetch"
 import "./featured.css"
 
 function Featured() {
       const {data,loading,error} = useFetch("/api/v1/hotels/all?limit=4") //make city user current loaction
       console.log(data,"this is data for all hotels")
+      const navigate = useNavigate()
+
+      const MoveTo = (id) => {
+           navigate(`/hotels/${id}`, {state: {}})
+      }
   return (
      <div className="fp">
 
        {  loading ? "Loading" : <>
-
-       {data.map((item) => (
-
-
-              <div className="fpItem" key={item._id}>
+       {data?.hotels?.map((item) => (
+              <div 
+              onClick={() => MoveTo(item._id)}
+              className="fpItem cursor-pointer" key={item._id}>
                 <img
                   src={item.photos[1]}
                   alt=""

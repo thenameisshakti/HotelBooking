@@ -139,3 +139,7 @@
 .optionCounterButton:disabled {
   cursor: not-allowed;
 }
+
+.headerSearchBtn:disabled {
+  cursor: not-allowed;
+}

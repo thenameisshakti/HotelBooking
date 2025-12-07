@@ -53,9 +53,12 @@ const hotlesSchema = new mongoose.Schema({
     }]
 
      ,
-    cheapestPrice: {
+    AveragePrice: {
         type: Number,
         
+    },
+    LowestPrice: {
+        type: Number
     },
     featured: {
         type: Boolean,

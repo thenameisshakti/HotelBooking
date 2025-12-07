@@ -19,7 +19,7 @@ const createRoom = asynHandler( async (req,res) => {
     const existedroom = await Rooms.findOne(
         
         {
-            title: req.body.title,
+            title: { $regex: new RegExp(`^${req.body.title}$`, "i") },
             "roomNumbers.number": { $in: RoomNo.map(r => r.number) }
         }
        
@@ -160,8 +160,6 @@ const updateRoom = asynHandler( async (req,res) => {
 
 })
 
-// provide data in postman in raw 
-
 const updateavailability = asynHandler(async (req,res) => {
     const rid = req.params.roomNumbersid
     console.log(rid)
@@ -222,25 +220,25 @@ const deleteRoom = asynHandler( async (req, res ) => {
 })
 
 const getRoom = asynHandler(async (req,res) => {
+    console.log("get room")
     const rid = req.params.roomNumbersid
-    console.log(rid)
-    const room = await Rooms.findOne({"roomNumbers._id": rid }).select("roomNumbers")
-    
+    const room = await Rooms.findOne({"roomNumbers._id": rid }).select("price")
     if(!room) {
         throw new ApiError(404,"no single room is founded")
     }
     console.log(room)
 
-    const singleroom = room.roomNumbers.filter((field)=> field._id = rid)
+    
 
 
     return res
     .status(200)
-    .json(new ApiResponse(200, singleroom,"here is your result"))
+    .json(new ApiResponse(200, room,"here is your result"))
 
 })
 
 const getAllRoom = asynHandler(async (req,res) =>{
+    console.log("get all room")
     const roomId = req.params.id
     const AllRoom = await Rooms.findById(roomId).select(" title  roomNumbers")
     console.log(AllRoom)

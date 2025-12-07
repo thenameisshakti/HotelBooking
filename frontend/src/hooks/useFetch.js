@@ -14,6 +14,7 @@ function useFetch(url) {
             try{
                 console.log(`we are in useFetch useEffect response is received and we set our data now ${url}`)
                 const response = await axios.get(url)
+                console.log(response.data,"------- > fetching in the useEffect")
                 
                 setData(response.data.data)
 
