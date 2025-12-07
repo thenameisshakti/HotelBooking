@@ -4,7 +4,7 @@ import {  createRoom, deleteRoom, getAllRoom, getRoom, updateavailability, updat
 import { upload } from "../middlewares/multer.middleware.js";
 const roomsroute = Router()
 
-roomsroute.route("/crad/:hotelid").post(
+roomsroute.route("/create/:hotelid").post(
     verifyAdmin,
     upload.fields([
         {

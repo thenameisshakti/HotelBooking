@@ -23,7 +23,8 @@ const roomShema = new Schema({
         type: [String]
     },
     owner: {
-        type: String
+        type: Schema.Types.ObjectId,
+        ref: "Users"
     }
 } , {timestamps: true})
 

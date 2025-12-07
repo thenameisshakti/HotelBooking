@@ -29,7 +29,7 @@ function Login() {
     e.preventDefault() 
     dispatch({type: "LOGIN_START"})
     try{
-      const res =  await axios.post('/api/v1/users/login', Credential)
+      const res =  await axios.post('/api/v1/users/login', Credential,{withCredentials: true})
      
       console.log(res)
       console.log(res.data.data.loggedInUser)

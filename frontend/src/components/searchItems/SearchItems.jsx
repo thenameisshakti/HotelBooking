@@ -13,9 +13,9 @@ function SearchItems({hotel}) {
   return (
     <div className="searchItem">
         <img 
-        src={hotel.photos[0]}
+        src={hotel.photos[2]}
         alt=""
-        className="siImg"
+        className="siImg rounded-md"
         />
         <div className="siDesc">
             <h1 className="siTitle font-extrabold capitalize">{`${hotel.name}`}</h1>

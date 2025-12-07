@@ -11,6 +11,7 @@ import useFetch from "../../hooks/useFetch"
 import { SearchContext } from '../../components/context/SearchContext'
 import { AuthContext } from '../../components/context/AuthContext'
 import Book from '../../components/book/Book'
+import Direct from '../../components/Direct/Direct'
 
 function SingleHotel() {
   const location = useLocation()
@@ -20,12 +21,14 @@ function SingleHotel() {
   const [slide,setSlide] = useState()
   const [open,setOpen] = useState(false)
   const [openmodal , setOpenModal] = useState(false)
+  const [directOption, setDirectOption] = useState(false)
  
   const {data,loading,error} = useFetch(`/api/v1/hotels/get/${id}`)
   console.log(data, "in single hotel")
+  
 
   const {user} = useContext(AuthContext)
-  console.log(user, "this is user")
+  console.log(user, "this is user and he is logged in right now")
   const navigate = useNavigate()
   
   const {date,option} = useContext(SearchContext)
@@ -80,6 +83,11 @@ function SingleHotel() {
 
   }
 
+  const handledirectOption = () => {
+    setDirectOption(true)
+    
+  }
+
 
   return (
     <div>
@@ -112,7 +120,9 @@ function SingleHotel() {
           </div>
         )}
         <div className="hotelWrapper">
-          <button className='bookNow'>Reserve or Book Now!</button>
+          {   date.length == 0  && <button 
+            onClick={handledirectOption}
+            className='bookNow'>Reserve or Book Now!</button>}
           <h1 className=" font-extrabold text-4xl">{`${data.name}`}</h1>
           <div className="hotelAddress">
             <FontAwesomeIcon icon={faLocation} />
@@ -140,8 +150,8 @@ function SingleHotel() {
                 {`${data.discription}`}
               </p>
             </div>
-            <div className="hotelDetailsPrice">
-              <h1 className='font-bold'>Perfect for a {days} stay!</h1>
+            { date.length !== 0  && <div className="hotelDetailsPrice">
+              <h1 className='font-bold'>Perfect for a {days+1} stay!</h1>
               <span>
                 Located in the real heart of Krakow, this property has an
                 excellent location score of 9.8!
@@ -151,15 +161,15 @@ function SingleHotel() {
               </h2> */}
               <button 
               onClick={handleClick}>Select Room</button>
-            </div>
+            </div>}
           </div>
         </div>
         <MailList />
         <Footer />
       </div>
       }
-      
-      {openmodal && <Book setOpen={setOpenModal} hotelId={id} />}
+      {directOption && <Direct setDirect={setDirectOption} />}
+      {openmodal && <Book setOpen={setOpenModal} hotelId={id}  state = {data.state}/>}
 
      </div>
   )

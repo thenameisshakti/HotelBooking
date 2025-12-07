@@ -1,14 +1,14 @@
 import "./featuredProperties.css"
 import  useFetch from "../../hooks/useFetch"
 
-function FeaturedProperties() {
+function birFeaturedProperties() {
     console.log("just before the calling from FeaturedProperties")
     const {data,loading,error} = useFetch("/api/v1/hotels/all")
     console.log(data,"the error solver")
    
 
   return (
-   <div className="featured">
+   <div className="featured cursor-pointer">
      { loading ? ("loading please wait") : 
      <>
      <div className="featuredItem">
@@ -62,4 +62,4 @@ function FeaturedProperties() {
 };
 
 
-export default FeaturedProperties
+export default birFeaturedProperties
