@@ -1,5 +1,5 @@
 import ApiError from "../utils/ApiError.js";
-import asynHandler from "../utils/asyncHandler.js";
+import asyncHandler from "../utils/asyncHandler.js";
 import { Users } from "../modules/user.module.js";
 import jwt from "jsonwebtoken"
 
@@ -20,37 +20,36 @@ const verifyjwt =  async (req) => {
         }
         
 
-        const user = await Users.findById(decodedToken?.id).select("-password -refreshToken")
+        const user = await Users.findById(decodedToken?.id).select(" _id username email isAdmin")
         
         
         if(!user){
             throw new ApiError(403,"invalid access Token")
         }
-
+        console.log("user verified in middleware" , user)
         return user
         
 
 
 }
 
-export const verifyUser = asynHandler( async (req,res,next) => {
+export const verifyUser = asyncHandler( async (req,res,next) => {
     try {
         const user = await verifyjwt(req)
         req.user = user
-        console.log("user verified")
         next()
     }catch (error){
-        console.log("error while verify user",error)
+        throw new ApiError(401, " unautherized request" )
     }
 })
 
-export const verifyAdmin = asynHandler( async(req,res,next) => {
+export const verifyAdmin = asyncHandler( async(req,res,next) => {
     try {
         
         const user = await verifyjwt(req)
-        
+        console.log(user.isAdmin)
         if(!user.isAdmin) {
-            throw new ApiError(403, " you are not authorized as Admin")
+            throw new ApiError(403, " you are not authorized as Admin")       
 
         }
         
@@ -58,6 +57,6 @@ export const verifyAdmin = asynHandler( async(req,res,next) => {
         console.log("Admin verify ")
         next()
     } catch (error) {
-        console.log(403,"error to verify admin",error)
+        throw new ApiError(403, " you are not authorized as Admin")
     }
 })

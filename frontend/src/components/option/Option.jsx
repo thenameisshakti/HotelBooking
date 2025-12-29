@@ -9,7 +9,7 @@ import { format } from "date-fns";
 import { DateRange } from "react-date-range";
 import { SearchContext } from "../context/SearchContext";
 
-function Direct({ setDirect, state }) {
+function Option({ setDirect, state }) {
   const { dispatch } = useContext(SearchContext);
 
   const [destination, setDestination] = useState();
@@ -49,7 +49,7 @@ function Direct({ setDirect, state }) {
   <div className="relative bg-white rounded-xl shadow-2xl  max-w-fit overflow-hidden">
 
     {/* Header */}
-    <div className="flex justify-between items-center px-5 py-4 border-b bg-[#FEBB02]">
+    <div className="flex justify-between items-center px-5 py-4 border-b ">
       <h2 className="font-bold text-xl text-black">Booking Details</h2>
       <FontAwesomeIcon
         onClick={() => setDirect(false)}
@@ -204,4 +204,4 @@ function Direct({ setDirect, state }) {
   );
 }
 
-export default Direct;
+export default Option;

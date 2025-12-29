@@ -3,7 +3,6 @@ import {useLocation, useSearchParams }from "react-router-dom"
 function PaymentSuccess() {
     
     const location = useLocation()
-    console.log(location)
     const searchQuery = useSearchParams()[0]
     const Payment_id = searchQuery.get("pay")
     const Order_id  = searchQuery.get('order')
