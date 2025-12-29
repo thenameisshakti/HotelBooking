@@ -14,7 +14,6 @@ function Book({ setOpen, hotelId }) {
   const [price, setPrice] = useState([]);
   const { date } = useContext(SearchContext);
   const navigate = useNavigate();
-  console.log(data, "this is data");
 
   const getDatesInRange = (startDate, endDate) => {
     const start = new Date(startDate);
@@ -56,9 +55,7 @@ function Book({ setOpen, hotelId }) {
 
     await Promise.all(
       updateroom.map(async (roomId) => {
-        console.log(roomId);
         const res = await axios.get(`/api/v1/rooms/get/${roomId}`);
-        console.log(res.data.data.price);
         total += res.data.data.price;
         setPrice(total);
       })
@@ -66,12 +63,9 @@ function Book({ setOpen, hotelId }) {
   };
 
   const checkoutHandler = async (amount) => {
-    console.log(amount);
     const unique = await axios.get("/api/v1/getkey");
-    console.log(unique.data.key);
 
     const res = await axios.post("/api/v1/pay/payment", { amount });
-    console.log(res.data.data);
 
     const options = {
       key: unique.data.key,
@@ -104,17 +98,14 @@ function Book({ setOpen, hotelId }) {
     try {
       await Promise.all(
         selectedRoom.map(async (roomId) => {
-          console.log(roomId);
           const res = await axios.put(`/api/v1/rooms/availability/${roomId}`, {
             date: alldates,
           });
-          console.log(res.data);
           checkoutHandler(price);
           return res.data;
         })
       );
     } catch (error) {
-      console.log(error);
     }
   };
 
@@ -123,7 +114,7 @@ function Book({ setOpen, hotelId }) {
     <div className="rContainer bg-white rounded-2xl shadow-2xl w-[92%] max-w-3xl relative overflow-hidden">
 
       {/* Top Bar */}
-      <div className="flex justify-between items-center px-6 py-4 bg-[#febb02] shadow">
+      <div className="flex justify-between items-center px-6 py-4 ">
         <h2 className="text-xl font-bold text-gray-900">Select Your Rooms</h2>
         <FontAwesomeIcon
           onClick={() => setOpen(false)}

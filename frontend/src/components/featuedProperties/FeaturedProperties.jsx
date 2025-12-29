@@ -2,9 +2,8 @@ import "./featuredProperties.css"
 import  useFetch from "../../hooks/useFetch"
 
 function birFeaturedProperties() {
-    console.log("just before the calling from FeaturedProperties")
     const {data,loading,error} = useFetch("/api/v1/hotels/all")
-    console.log(data,"the error solver")
+    // console.log(data,"the error solver")
    
 
   return (

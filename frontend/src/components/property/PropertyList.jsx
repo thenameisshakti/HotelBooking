@@ -3,7 +3,7 @@ import useFetch from "../../hooks/useFetch"
 
 function PropertyList() {
   const {data,loading,error} = useFetch("/api/v1/hotels/type?type=apartment")
-  console.log(data)
+  // console.log(data)
   const type = ["Hotel","Apartment","Resort","villa","cabin",]
   const images =[
     "https://plus.unsplash.com/premium_photo-1670360414903-19e5832f8bc4?q=80&w=2940&auto=format&fit=crop&ixlib=rb-4.1.0&ixid=M3wxMjA3fDB8MHxwaG90by1wYWdlfHx8fGVufDB8fHx8fA%3D%3D",
