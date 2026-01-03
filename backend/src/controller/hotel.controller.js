@@ -5,7 +5,8 @@ import { Hotels } from "../modules/hotels.module.js";
 import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/uploadOnCloundinary.js";
 import { Rooms } from "../modules/rooms.module.js";
 import { HotelsReview } from "../modules/hotelsReview.module.js";
-    import {MAX_IMAGE_UPLOAD} from "../utils/constant.js";
+import {MAX_IMAGE_UPLOAD} from "../utils/constant.js";
+
 
 const createHotel = asyncHandler(async (req, res) => {
   const {
@@ -41,7 +42,6 @@ const createHotel = asyncHandler(async (req, res) => {
   if (existHotel) {
     throw new ApiError(402, "this hotel is already exist ");
   }
-  console.log("this is files", req.files);
 
   const photoslocalpath = req.files?.photos?.map((field) => field.path);
   const photos = [];
@@ -76,7 +76,6 @@ const createHotel = asyncHandler(async (req, res) => {
 
 const updateHotel = asyncHandler(async (req, res) => {
   const updateField = { ...req.body };
-  console.log(updateField);
 
   for (let field in updateField) {
     if (updateField[field] !== "" && updateField[field] !== undefined)
@@ -112,9 +111,7 @@ const deleteHotel = asyncHandler(async (req, res) => {
 });
 
 const getHotel = asyncHandler(async (req, res) => {
-  console.log("get the Hotel");
   const hotelId = req.params.hotelId;
-  console.log(hotelId);
 
   const hotel = await Hotels.findById(hotelId);
 
@@ -126,10 +123,6 @@ const getHotel = asyncHandler(async (req, res) => {
 });
 
 const getAllHotel = asyncHandler(async (req, res) => {
-  console.log("++++++++++++++++++++++++++++ enter");
-  console.log("get all the hotel");
-  console.log(req.query);
-
   let { min, max, limit = 3, page = 1, city, ...others } = req.query;
 
   limit = Number(limit);
@@ -153,10 +146,6 @@ const getAllHotel = asyncHandler(async (req, res) => {
   const hotels = await Hotels.find(filters).skip(skip).limit(limit);
 
   const totalHotels = await Hotels.countDocuments(filters);
-  console.log(
-    "-----------------------------------------------> sending response"
-  );
-  console.log(page);
   return res.status(200).json(
     new ApiResponse(
       200,
@@ -173,7 +162,6 @@ const getAllHotel = asyncHandler(async (req, res) => {
 
 const countByCity = asyncHandler(async (req, res) => {
   const cities = req.query.cities.split(",");
-  console.log(cities);
   if (cities == "" || cities.length === 0) {
     throw new ApiError(404, "no cities provided");
   }
@@ -193,8 +181,6 @@ const countByCity = asyncHandler(async (req, res) => {
     });
     list.push(count);
   }
-
-  console.log(list);
 
   return res
     .status(200)
@@ -231,7 +217,6 @@ const countByCity = asyncHandler(async (req, res) => {
 // })
 
 const countByType = asyncHandler(async (req, res) => {
-  console.log("count by the type");
   const [hotelCount, apartmentCount, resortCount, villaCount, cabinCount] =
     await Promise.all([
       Hotels.countDocuments({ type: "hotel" }),
@@ -253,13 +238,11 @@ const countByType = asyncHandler(async (req, res) => {
 });
 
 const getHotelRooms = asyncHandler(async (req, res) => {
-  console.log("get the hotel room");
   const hotel = await Hotels.findById(req.params.hotelId);
 
   if (!hotel) {
     throw new ApiError(404, "the hotel you are looking for is not present");
   }
-  console.log(hotel.rooms);
 
   const list = await Promise.all(
     hotel.rooms.map(async (room) => {
@@ -268,7 +251,6 @@ const getHotelRooms = asyncHandler(async (req, res) => {
       );
     })
   );
-  console.log(list);
 
   return res.status(200).json(new ApiResponse(200, list, "here all the rooms"));
 });
@@ -280,7 +262,6 @@ const reviewHotel = asyncHandler(async (req, res) => {
     hotelId: hotelId,
     userId: req.user._id,
   });
-  console.log(existReview);
   if (existReview) {
     throw new ApiError(404, "you have already reviewed this hotel");
   }
@@ -289,7 +270,6 @@ const reviewHotel = asyncHandler(async (req, res) => {
   if (!description || !rating) {
     throw new ApiError(404, " all fields are required ");
   }
-  console.log(req.files);
 
   const photosLocalPath = req.files?.photos?.map((field) => field.path);
   const photosUrl = [];
@@ -301,7 +281,6 @@ const reviewHotel = asyncHandler(async (req, res) => {
       photosUrl.push({imageUrl: uploaded.url,imagePublicId: uploaded.public_id});
     }
   }
-  console.log(photosUrl);
   const hotelReview = await HotelsReview.create({
     hotelId: hotelId,
     userId: req.user._id,
@@ -401,7 +380,6 @@ const deleteReviewPhoto = asyncHandler(async (req,res) => {
 
     perticularPhoto.deleteOne();
     await review.save()
-    console.log(review)
 
     return res
     .status(200)

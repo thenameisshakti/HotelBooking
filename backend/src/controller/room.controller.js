@@ -14,7 +14,6 @@ const createRoom = asyncHandler(async (req, res) => {
     RoomNo =
       typeof roomNumbers === "string" ? JSON.parse(roomNumbers) : roomNumbers;
   }
-  console.log(RoomNo);
 
   const existedroom = await Rooms.findOne({
     title: { $regex: new RegExp(`^${req.body.title}$`, "i") },
@@ -94,11 +93,9 @@ const updateRoom = asyncHandler(async (req, res) => {
         : update.roomNumbers;
     delete update.roomNumbers;
   }
-  console.log(newRoom);
 
   if (update.roomImage) {
     const roomImagelocalpath = req.files?.roomImage?.map((field) => field.path);
-    console.log(roomImagelocalpath);
     let roomImage;
     for (let localpath in roomImagelocalpath) {
       const uploaded = await uploadOnCloudinary(localpath);
@@ -128,8 +125,6 @@ const updateRoom = asyncHandler(async (req, res) => {
       !room.roomNumbers.some((r) => r.number == field.number);
     });
 
-    console.log(roomtoadd);
-
     if (roomtoadd.length > 0) {
       query.$push = { roomNumbers: { $each: roomtoadd } };
     } else {
@@ -144,7 +139,6 @@ const updateRoom = asyncHandler(async (req, res) => {
 
 const updateavailability = asyncHandler(async (req, res) => {
   const rid = req.params.roomNumbersid;
-  console.log(rid);
 
   const availabilityupdate = await Rooms.findOneAndUpdate(
     { "roomNumbers._id": rid },
@@ -170,15 +164,12 @@ const updateavailability = asyncHandler(async (req, res) => {
 
 const deleteRoom = asyncHandler(async (req, res) => {
   const rid = req.params.roomNumbersid;
-  console.log(rid);
 
   const hotelroom = await Hotels.findOneAndUpdate(
     { rooms: rid },
     { $pull: { rooms: rid } },
     { new: true }
   );
-
-  // console.log(hotelroom)
 
   if (!hotelroom) {
     throw new ApiError(404, "room in Hotel is not deleted");
@@ -189,7 +180,6 @@ const deleteRoom = asyncHandler(async (req, res) => {
     { $pull: { roomNumbers: { _id: rid } } },
     { new: true }
   );
-  // console.log(singleroom)
 
   if (!singleroom) {
     console.log(" so you want to delete the all perticular type of room");
@@ -201,13 +191,11 @@ const deleteRoom = asyncHandler(async (req, res) => {
 });
 
 const getRoom = asyncHandler(async (req, res) => {
-  console.log("get room");
   const rid = req.params.roomNumbersid;
   const room = await Rooms.findOne({ "roomNumbers._id": rid }).select("price");
   if (!room) {
     throw new ApiError(404, "no single room is founded");
   }
-  console.log(room);
 
   return res
     .status(200)
@@ -215,10 +203,8 @@ const getRoom = asyncHandler(async (req, res) => {
 });
 
 const getAllRoom = asyncHandler(async (req, res) => {
-  console.log("get all room");
   const roomId = req.params.id;
   const AllRoom = await Rooms.findById(roomId).select(" title  roomNumbers");
-  console.log(AllRoom);
   return res
     .status(200)
     .json(new ApiResponse(200, AllRoom, "here are your all rooms"));

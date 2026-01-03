@@ -149,7 +149,7 @@ function SingleHotel() {
               </p>
             </div>
             { date.length !== 0  && <div className="hotelDetailsPrice">
-              <h1 className='font-bold'>Perfect for a {days+1} stay!</h1>
+              <h1 className='font-bold'>Perfect for a {days} stay!</h1>
               <span>
                 Located in the real heart of Krakow, this property has an
                 excellent location score of 9.8!
@@ -168,7 +168,7 @@ function SingleHotel() {
       </div>
       }
       {directOption && <Option setDirect={setDirectOption} />}
-      {openmodal && <Book setOpen={setOpenModal} hotelId={id}  state = {data.state}/>}
+      {openmodal && <Book setOpen={setOpenModal} hotelId={id} days={days} state = {data.state}/>}
 
      </div>
   )
