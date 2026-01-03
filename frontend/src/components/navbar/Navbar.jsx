@@ -5,6 +5,7 @@ import axios from 'axios'
 
 function Navbar() {
   const { user, dispatch } = useContext(AuthContext)
+  console.log(user)
   const location = useLocation()
   const navigate = useNavigate()
 

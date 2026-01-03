@@ -18,7 +18,10 @@ const roomShema = new Schema({
         type: String,
 
     },
-    roomNumbers: [{number: Number ,unavailableDates: {type: [Date]}}],
+    visibility: {
+        type: Boolean
+    },
+    roomNumbers: [{number: Number ,unavailableDates: {type: [Date]}, status: {type: String, enum: [ "booked"]}}],
     roomImage: {
         type: [String]
     },
@@ -27,5 +30,7 @@ const roomShema = new Schema({
         ref: "Users"
     }
 } , {timestamps: true})
+
+roomShema.index({"roomNumbers._id": 1})
 
 export const Rooms = mongoose.model("Rooms", roomShema)

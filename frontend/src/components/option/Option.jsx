@@ -13,10 +13,14 @@ function Option({ setDirect, state }) {
   const { dispatch } = useContext(SearchContext);
 
   const [destination, setDestination] = useState();
+  const today = new Date() 
+  const tomorrow = new Date()
+  tomorrow.setDate(today.getDate() + 1)
+
   const [date, setDate] = useState([
     {
-      startDate: new Date(),
-      endDate: new Date(),
+      startDate: today ,
+      endDate: tomorrow,
       key: "selection",
     },
   ]);
@@ -79,7 +83,23 @@ function Option({ setDirect, state }) {
         {openDate && (
           <div className="mt-3 border rounded-lg  w-full shadow-md overflow-hidden">
             <DateRange
-              onChange={(item) => setDate([item.selection])}
+               onChange={(item) => {
+                const start = item.selection.startDate;
+                let end = item.selection.endDate;
+
+                if (start.getTime() === end.getTime()) {
+                  end = new Date(start);
+                  end.setDate(end.getDate() + 1);
+                }
+              
+                setDate([
+                  {
+                    ...item.selection,
+                    startDate: start,
+                    endDate: end,
+                  },
+                ]);
+              }}
               minDate={new Date()}
               ranges={date}
               className="flex justify-end rounded-md"

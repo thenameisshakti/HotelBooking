@@ -4,30 +4,34 @@ import { Users } from "../modules/user.module.js";
 import jwt from "jsonwebtoken"
 
 const verifyjwt =  async (req) => {
-       
+       try {
+         const token = req.cookies?.accessToken || req.get("Authorization")?.replace("Bearer ","") || req.headers?.authorization?.replace("Bearer ", "");
+        console.log(token)
+         if(!token) {
+             throw new ApiError(401, "unautherized request")
+ 
+         }
+         console.log("here")
+         const decodedToken = jwt.verify(token , process.env.ACCESS_TOKEN_SECRET)
 
-        const token = req.cookies?.accessToken || req.get("Authorization")?.replace("Bearer ","") || req.headers?.authorization?.replace("Bearer ", "");
-
-        if(!token) {
-            throw new ApiError(401, "unautherized request")
-
-        }
-
-        const decodedToken = jwt.verify(token , process.env.ACCESS_TOKEN_SECRET)
-
-        if (!decodedToken) {
-            throw new ApiError(402, " error in verifiction")
-        }
-        
-
-        const user = await Users.findById(decodedToken?.id).select(" _id username email isAdmin")
-        
-        
-        if(!user){
-            throw new ApiError(403,"invalid access Token")
-        }
-        console.log("user verified in middleware" , user)
-        return user
+         console.log(decodedToken, "here")
+         if (!decodedToken) {
+             throw new ApiError(402, " error in verifiction")
+         }
+         
+ 
+         const user = await Users.findById(decodedToken?.id).select(" _id username email isAdmin")
+         
+         
+         if(!user){
+             throw new ApiError(403,"invalid access Token")
+         }
+         console.log("user verified in middleware" , user)
+         return user
+       } catch (error) {
+        console.log("error in verify jwt", error.message )
+        throw error;
+       }
         
 
 
@@ -36,10 +40,12 @@ const verifyjwt =  async (req) => {
 export const verifyUser = asyncHandler( async (req,res,next) => {
     try {
         const user = await verifyjwt(req)
+        console.log(user,"this is user")
         req.user = user
         next()
     }catch (error){
-        throw new ApiError(401, " unautherized request" )
+        console.log(error.message)
+        throw new ApiError(401, " unautherized request as user" )
     }
 })
 

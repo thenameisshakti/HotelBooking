@@ -72,7 +72,7 @@ const login = asyncHandler(async (req, res) => {
 
   const options = {
     httpOnly: true,
-    secure: true,
+    secure: false,
   };
 
   return res
@@ -85,7 +85,6 @@ const login = asyncHandler(async (req, res) => {
 });
 
 const logout = asyncHandler(async (req, res) => {
-  console.log(req.user);
 
   const user = await Users.findByIdAndUpdate(
     req.user._id,
@@ -112,7 +111,6 @@ const logout = asyncHandler(async (req, res) => {
 const updateUser = asyncHandler(async (req, res) => {
   const userId = req.user._id;
   const updates = req.body;
-  console.log(updates);
 
   for (const key in updates) {
     if (typeof updates[key] === "string" && updates[key] === "") {
@@ -125,7 +123,6 @@ const updateUser = asyncHandler(async (req, res) => {
     user.password = updates.password;
     await user.save();
     delete updates.password;
-    console.log("password change successfully");
   }
 
   const updateuser = await Users.findByIdAndUpdate(
