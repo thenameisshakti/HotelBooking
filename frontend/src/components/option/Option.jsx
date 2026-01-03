@@ -9,14 +9,18 @@ import { format } from "date-fns";
 import { DateRange } from "react-date-range";
 import { SearchContext } from "../context/SearchContext";
 
-function Direct({ setDirect, state }) {
+function Option({ setDirect, state }) {
   const { dispatch } = useContext(SearchContext);
 
   const [destination, setDestination] = useState();
+  const today = new Date() 
+  const tomorrow = new Date()
+  tomorrow.setDate(today.getDate() + 1)
+
   const [date, setDate] = useState([
     {
-      startDate: new Date(),
-      endDate: new Date(),
+      startDate: today ,
+      endDate: tomorrow,
       key: "selection",
     },
   ]);
@@ -49,7 +53,7 @@ function Direct({ setDirect, state }) {
   <div className="relative bg-white rounded-xl shadow-2xl  max-w-fit overflow-hidden">
 
     {/* Header */}
-    <div className="flex justify-between items-center px-5 py-4 border-b bg-[#FEBB02]">
+    <div className="flex justify-between items-center px-5 py-4 border-b ">
       <h2 className="font-bold text-xl text-black">Booking Details</h2>
       <FontAwesomeIcon
         onClick={() => setDirect(false)}
@@ -79,7 +83,23 @@ function Direct({ setDirect, state }) {
         {openDate && (
           <div className="mt-3 border rounded-lg  w-full shadow-md overflow-hidden">
             <DateRange
-              onChange={(item) => setDate([item.selection])}
+               onChange={(item) => {
+                const start = item.selection.startDate;
+                let end = item.selection.endDate;
+
+                if (start.getTime() === end.getTime()) {
+                  end = new Date(start);
+                  end.setDate(end.getDate() + 1);
+                }
+              
+                setDate([
+                  {
+                    ...item.selection,
+                    startDate: start,
+                    endDate: end,
+                  },
+                ]);
+              }}
               minDate={new Date()}
               ranges={date}
               className="flex justify-end rounded-md"
@@ -204,4 +224,4 @@ function Direct({ setDirect, state }) {
   );
 }
 
-export default Direct;
+export default Option;

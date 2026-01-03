@@ -18,6 +18,13 @@ export const raypay = new Razorpay({
 
 
 app.use(
+  "/api/v1/pay/razorpay-webhook",
+  express.raw({ type: "application/json" })
+);
+
+
+
+app.use(
     express.json({
         limit: "16kb"
     })
@@ -40,16 +47,19 @@ import hotelsroute from "./routes/hotels.routes.js"
 import roomsroute from "./routes/rooms.routes.js"
 import userroute from "./routes/user.routes.js"
 import { payRouter } from "./routes/payment.routes.js"
+import bookingRoutes from "./routes/booking.routes.js"
 
 
 app.use('/api/v1/users', userroute)
 app.use('/api/v1/hotels', hotelsroute)
 app.use('/api/v1/rooms', roomsroute )
+app.use('/api/v1/booking', bookingRoutes)
 app.use('/api/v1/pay',payRouter)
 
 
+
 app.get('/api/v1/getkey',(req,res) => {
-    console.log("inside of getkey")
+    console.log("getting the razorpay key")
     res.status(200).json({key: process.env.RAZORPAY_API_KEY})})
 
 app.use(errorHandler)

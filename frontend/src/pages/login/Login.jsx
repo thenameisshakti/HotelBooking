@@ -7,7 +7,6 @@ import { useLocation, useNavigate } from "react-router"
 function Login() {
 
   const location = useLocation() 
-  console.log(location)
   const backto = location.state.lastpage
 
   const [Credential,setCredential] = useState(
@@ -31,8 +30,6 @@ function Login() {
     try{
       const res =  await axios.post('/api/v1/users/login', Credential,{withCredentials: true})
      
-      console.log(res)
-      console.log(res.data.data.loggedInUser)
       dispatch ({type : "LOGIN_SUCCESS" , payload: res.data.data})
       navigate(`${backto}`)
       

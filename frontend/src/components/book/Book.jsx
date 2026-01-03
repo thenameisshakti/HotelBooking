@@ -2,34 +2,39 @@ import { faCircleXmark } from "@fortawesome/free-solid-svg-icons";
 import { FontAwesomeIcon } from "@fortawesome/react-fontawesome";
 import { SearchContext } from "../context/SearchContext";
 import useFetch from "../../hooks/useFetch";
-import { useContext, useState } from "react";
-import { useNavigate } from "react-router";
+import { useContext, useState,useEffect } from "react";
+import { useNavigate } from "react-router-dom";
 import "./book.css";
 import axios from "axios";
 
-function Book({ setOpen, hotelId }) {
+function Book({ setOpen, hotelId , days}) {
   const [selectedRoom, setSelectedRoom] = useState([]);
   const [goToPay , setGoToPay] = useState(false)
+  const [locks, setLocks] = useState({}); 
   const { data, loading, error } = useFetch(`/api/v1/hotels/room/${hotelId}`);
-  const [price, setPrice] = useState([]);
+  const [price, setPrice] = useState(0);
   const { date } = useContext(SearchContext);
   const navigate = useNavigate();
-  console.log(data, "this is data");
+  const totalFair = price*days
 
   const getDatesInRange = (startDate, endDate) => {
     const start = new Date(startDate);
     const end = new Date(endDate);
+
+     const safeEnd = end.getTime() <= start.getTime()
+      ? new Date(start.getTime() + 24 * 60 * 60 * 1000) // start + 1 day
+      : end;
     const tarik = new Date(start.getTime());
 
     let list = [];
-    while (tarik <= end) {
+    while (tarik <= safeEnd) {
       list.push(new Date(tarik).getTime());
       tarik.setDate(tarik.getDate() + 1);
     }
     return list;
   };
 
-  const alldates = getDatesInRange(date[0].startDate, date[0].endDate);
+  const alldates = getDatesInRange(date[0].startDate, date[0].endDate );
 
   const isAvailable = (roomNumber) => {
     const isFound = roomNumber.unavailableDates.some((date) =>
@@ -38,40 +43,64 @@ function Book({ setOpen, hotelId }) {
     return !isFound;
   };
 
-  const handleSelect = (e) => {
+  const handleSelect = async(e, price,roomId) => {
+    console.log(roomId)
     const checked = e.target.checked;
-    const value = e.target.value;
-    const updateroom = checked
-      ? [...selectedRoom, value]
-      : selectedRoom.filter((item) => item !== value);
-    setSelectedRoom(updateroom);
-    priceCalcultion(updateroom);
-    if(updateroom.length > 0){
-        setGoToPay(true)
-    }else setGoToPay(false)
+    const roomNumberId = e.target.value;
+   try {
 
-  };
-  const priceCalcultion = async (updateroom) => {
-    let total = 0;
-
-    await Promise.all(
-      updateroom.map(async (roomId) => {
-        console.log(roomId);
-        const res = await axios.get(`/api/v1/rooms/get/${roomId}`);
-        console.log(res.data.data.price);
-        total += res.data.data.price;
-        setPrice(total);
+    if (checked) {
+       const {data} = await axios.post(`/api/v1/booking/createLock`,{
+         roomId,
+         roomNumberId,
+         startDate: date[0].startDate,
+         endDate: date[0].endDate,
+         hotelId
+       })
+       const lockId = data.data.lockId
+       setLocks((prev) => ({ ...prev, [roomNumberId]: lockId, }));
+       setSelectedRoom((prev) => prev.includes(roomNumberId) ? prev : [...prev, roomNumberId] );
+       setPrice((prev) => prev + price);
+       setGoToPay(true);
+    }else {
+      const lockId = locks[roomNumberId];
+      if(lockId){
+        await axios.delete(`/api/v1/booking/deleteLock/${lockId}`)
+      }
+      setLocks((perv) => {
+        const next = {...perv}
+        delete next[roomNumberId]
+        return next
       })
-    );
+      setSelectedRoom((perv) => perv.filter((id) => id != roomNumberId))
+      setPrice((perv) => perv - price)
+      setGoToPay((prev) => prev && selectedRoom.length > 1);
+    }
+   } catch (error) {
+      e.target.checked = !checked;
+      if (error?.response?.status === 409)
+        { alert("Room is temporarily locked");
+        } else { alert("Something went wrong. Please try again."); }
+   }
   };
+
+  const handleCross = async() => {
+    try {
+      if(Object.keys(locks).length > 0) {
+          await Promise.all(Object.values(locks).map((lockId) => 
+          axios.delete(`/api/v1/booking/deleteLock/${lockId}`)))
+      }
+    } catch (error) {
+      console.log("error releasing locks",error)
+    }finally{
+      setOpen(false)
+    }
+  }
 
   const checkoutHandler = async (amount) => {
-    console.log(amount);
     const unique = await axios.get("/api/v1/getkey");
-    console.log(unique.data.key);
 
     const res = await axios.post("/api/v1/pay/payment", { amount });
-    console.log(res.data.data);
 
     const options = {
       key: unique.data.key,
@@ -82,7 +111,15 @@ function Book({ setOpen, hotelId }) {
       image:
         "https://avatars.githubusercontent.com/u/158671738?s=400&u=cfa2ffe129d72fff816910f848369c5f70560229&v=4",
       order_id: res.data.data.id,
-      callback_url: "/api/v1/pay/paymentverification",
+      handler: async function (response) {
+      await axios.post("/api/v1/pay/verify-and-book", {
+        razorpay_payment_id: response.razorpay_payment_id,
+        razorpay_order_id: response.razorpay_order_id,
+        razorpay_signature: response.razorpay_signature,
+        lockIds: Object.values(locks),
+      });
+      navigate(`/paymentsuccess?pay=${razorpay_payment_id}&order=${razorpay_order_id}`)
+    },
       prefill: {
         name: "vinay",
         email: "viany@shakti.com",
@@ -102,19 +139,10 @@ function Book({ setOpen, hotelId }) {
 
   const handleDateandPay = async () => {
     try {
-      await Promise.all(
-        selectedRoom.map(async (roomId) => {
-          console.log(roomId);
-          const res = await axios.put(`/api/v1/rooms/availability/${roomId}`, {
-            date: alldates,
-          });
-          console.log(res.data);
-          checkoutHandler(price);
-          return res.data;
-        })
-      );
+          if(price == 0) return 
+          checkoutHandler(totalFair);
     } catch (error) {
-      console.log(error);
+      console.log("payment got failed")
     }
   };
 
@@ -123,10 +151,10 @@ function Book({ setOpen, hotelId }) {
     <div className="rContainer bg-white rounded-2xl shadow-2xl w-[92%] max-w-3xl relative overflow-hidden">
 
       {/* Top Bar */}
-      <div className="flex justify-between items-center px-6 py-4 bg-[#febb02] shadow">
+      <div className="flex justify-between items-center px-6 py-4 ">
         <h2 className="text-xl font-bold text-gray-900">Select Your Rooms</h2>
         <FontAwesomeIcon
-          onClick={() => setOpen(false)}
+          onClick= {handleCross}
           icon={faCircleXmark}
           className="text-2xl text-gray-700 hover:text-red-600 cursor-pointer transition"
         />
@@ -180,7 +208,7 @@ function Book({ setOpen, hotelId }) {
                     <input
                       type="checkbox"
                       value={rno._id}
-                      onChange={handleSelect}
+                      onChange={(e) => handleSelect(e,item.price,item._id)}
                       disabled={!isAvailable(rno)}
                       className="mt-2 h-4 w-4 accent-blue-600 cursor-pointer"
                     />
@@ -208,7 +236,7 @@ function Book({ setOpen, hotelId }) {
             }
           `}
         >
-          {goToPay ? `₹ ${price} • Book Now` : `Select Room`}
+          {goToPay ? `₹ ${totalFair} • Book Now` : `Select Room`}
         </button>
       </div>
 

@@ -11,7 +11,8 @@ import useFetch from "../../hooks/useFetch"
 import { SearchContext } from '../../components/context/SearchContext'
 import { AuthContext } from '../../components/context/AuthContext'
 import Book from '../../components/book/Book'
-import Direct from '../../components/Direct/Direct'
+import Option from '../../components/option/Option'
+import Review from '../../components/review/Review'
 
 function SingleHotel() {
   const location = useLocation()
@@ -24,11 +25,11 @@ function SingleHotel() {
   const [directOption, setDirectOption] = useState(false)
  
   const {data,loading,error} = useFetch(`/api/v1/hotels/get/${id}`)
-  console.log(data, "in single hotel")
+  // console.log(data, "in single hotel")
   
 
   const {user} = useContext(AuthContext)
-  console.log(user, "this is user and he is logged in right now")
+  // console.log(user, "this is user and he is logged in right now")
   const navigate = useNavigate()
   
   const {date,option} = useContext(SearchContext)
@@ -41,9 +42,6 @@ function SingleHotel() {
     const diffDays = Math.ceil(timeDiff / MILLISECONDS_PER_DAY);
     return diffDays;
   }
-
-  console.log(date ,option ,"the date and option ")
-
   const days = dayDifference(date[0]?.endDate, date[0]?.startDate);
 
 
@@ -151,7 +149,7 @@ function SingleHotel() {
               </p>
             </div>
             { date.length !== 0  && <div className="hotelDetailsPrice">
-              <h1 className='font-bold'>Perfect for a {days+1} stay!</h1>
+              <h1 className='font-bold'>Perfect for a {days} stay!</h1>
               <span>
                 Located in the real heart of Krakow, this property has an
                 excellent location score of 9.8!
@@ -164,12 +162,13 @@ function SingleHotel() {
             </div>}
           </div>
         </div>
+        <Review />
         <MailList />
         <Footer />
       </div>
       }
-      {directOption && <Direct setDirect={setDirectOption} />}
-      {openmodal && <Book setOpen={setOpenModal} hotelId={id}  state = {data.state}/>}
+      {directOption && <Option setDirect={setDirectOption} />}
+      {openmodal && <Book setOpen={setOpenModal} hotelId={id} days={days} state = {data.state}/>}
 
      </div>
   )
