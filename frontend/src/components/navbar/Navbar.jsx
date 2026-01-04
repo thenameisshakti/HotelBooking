@@ -1,10 +1,10 @@
 import React, { useContext } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
 import api from '../../api/apihandler.js'
 
 function Navbar() {
-  const { user, dispatch } = useContext(AuthContext)
+  const { loading,user, dispatch } = useContext(AuthContext)
   console.log(user)
   const location = useLocation()
   const navigate = useNavigate()
@@ -14,6 +14,7 @@ function Navbar() {
   }
 
   const handleLogout = async () => {
+    dispatch({type: "START"})
     try {
       const res = await api.post(
         "/api/v1/users/logout",
@@ -80,6 +81,7 @@ function Navbar() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
+              disabled={loading}
               className="
                 px-6 py-2 rounded-md font-semibold
                 bg-blue-600 text-white

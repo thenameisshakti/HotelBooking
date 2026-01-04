@@ -3,6 +3,7 @@ import "./login.css"
 import { AuthContext } from "../../components/context/AuthContext"
 import { useLocation, useNavigate } from "react-router"
 import api from "../../api/apihandler.js"
+import { toast } from "react-toastify"
 
 function Login() {
 
@@ -18,7 +19,7 @@ function Login() {
   const navigate = useNavigate()
 
   const {loading,error,dispatch} = useContext(AuthContext)
-
+  console.log(typeof loading)
   const handleChange =(e) => {
     setCredential(perv => ({...perv , [e.target.id] : e.target.value}))
 
@@ -26,10 +27,13 @@ function Login() {
  
   const handleClick = async (e) => {
     e.preventDefault() 
-    dispatch({type: "LOGIN_START"})
+
+    dispatch({type: "START"})
     try{
       const res =  await api.post('/api/v1/users/login', Credential,{withCredentials: true})
-     
+      if(res.data){
+        toast.success("Logged in successfully")
+      }
       dispatch ({type : "LOGIN_SUCCESS" , payload: res.data.data})
       if(!backto){
         navigate('/')
@@ -60,8 +64,9 @@ function Login() {
         type="password" placeholder="your password" id="password"/>
         </div>
         <button
+        disabled={loading}
         onClick={handleClick}
-        className="lButton" > Log in </button>
+        className="lButton" > {loading ? "Loading " : "Log in" }</button>
        
       </div>
        {error && <span>{error}</span>}

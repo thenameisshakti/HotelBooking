@@ -1,4 +1,5 @@
 import axios from "axios"
+import { toast } from "react-toastify"
 
 const api = axios.create({
   baseURL: "/",
@@ -17,7 +18,6 @@ api.interceptors.response.use(
         await api.post("api/v1/users/refreshAccessToken")
         return api(originalRequest)
       } catch {
-        console.log("ok")
         localStorage.removeItem("user")
         window.location.href = "/"
       }

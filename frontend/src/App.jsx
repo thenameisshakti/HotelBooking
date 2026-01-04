@@ -4,9 +4,11 @@ import List from "./pages/list/List";
 import SingleHotel from "./pages/singleHotel/SingleHotel";
 import Login from "./pages/login/Login";
 import Success from "./pages/Success/Success.jsx"
+import { ToastContainer } from "react-toastify"
 
 function App() {
   return (
+    <>
     <BrowserRouter>
       <Routes>
         <Route path="/" element={<Home/>}/>
@@ -16,6 +18,8 @@ function App() {
         <Route path="/paymentsuccess" element={<Success />}/>
       </Routes>
     </BrowserRouter>
+     <ToastContainer position="top-right" autoClose={3000} />
+    </>
   )
 }
 
