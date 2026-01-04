@@ -40,8 +40,6 @@ const register = asyncHandler(async (req, res) => {
     ...other,
   });
 
-  await user.save();
-
   return res.status(200).json(new ApiResponse(200, user, "user is register"));
 });
 
@@ -188,12 +186,12 @@ const refreshAccessToken = asyncHandler(async (req, res) => {
     throw new ApiError(403, "Invalid refresh token")
   }
 
-  // OPTIONAL (recommended): check refresh token stored in DB
-  if (user.refreshToken !== refreshToken) {
-    throw new ApiError(403, "Refresh token mismatch")
-  }
-
+  //  OPTIONAL (recommended): check refresh token stored in DB
+  // if (user.refreshToken !== refreshToken) {
+  //   throw new ApiError(403, "Refresh token mismatch")
+  // }
   // Create new access token
+  
   const newAccessToken = user.generateAccessToken()
 
   const options = {
