@@ -10,7 +10,7 @@ import useFetch from "../../hooks/useFetch";
 import { SearchContext } from "../../components/context/SearchContext";
 import MailList from "../../components/mailList/MailList";
 import Footer from "../../components/footer/Footer";
-import axios from "axios";
+import api from '../../api/apihandler.js'
 
 function List() {
   const location = useLocation();
@@ -99,7 +99,7 @@ function List() {
     console.log("Loading page:", nextPage);
 
     try {
-      const response = await axios.get(
+      const response = await api.get(
         `/api/v1/hotels/all?page=${nextPage}&limit=${limit}&city=${encodeURIComponent(
           destinationRef.current
         )}&min=${encodeURIComponent(minRef.current)}&max=${encodeURIComponent(

@@ -5,7 +5,7 @@ import useFetch from "../../hooks/useFetch";
 import { useContext, useState,useEffect } from "react";
 import { useNavigate } from "react-router-dom";
 import "./book.css";
-import axios from "axios";
+import api from '../../api/apihandler.js'
 
 function Book({ setOpen, hotelId , days}) {
   const [selectedRoom, setSelectedRoom] = useState([]);
@@ -50,7 +50,7 @@ function Book({ setOpen, hotelId , days}) {
    try {
 
     if (checked) {
-       const {data} = await axios.post(`/api/v1/booking/createLock`,{
+       const {data} = await api.post(`/api/v1/booking/createLock`,{
          roomId,
          roomNumberId,
          startDate: date[0].startDate,
@@ -65,7 +65,7 @@ function Book({ setOpen, hotelId , days}) {
     }else {
       const lockId = locks[roomNumberId];
       if(lockId){
-        await axios.delete(`/api/v1/booking/deleteLock/${lockId}`)
+        await api.delete(`/api/v1/booking/deleteLock/${lockId}`)
       }
       setLocks((perv) => {
         const next = {...perv}
@@ -88,7 +88,7 @@ function Book({ setOpen, hotelId , days}) {
     try {
       if(Object.keys(locks).length > 0) {
           await Promise.all(Object.values(locks).map((lockId) => 
-          axios.delete(`/api/v1/booking/deleteLock/${lockId}`)))
+          api.delete(`/api/v1/booking/deleteLock/${lockId}`)))
       }
     } catch (error) {
       console.log("error releasing locks",error)
@@ -98,9 +98,9 @@ function Book({ setOpen, hotelId , days}) {
   }
 
   const checkoutHandler = async (amount) => {
-    const unique = await axios.get("/api/v1/getkey");
+    const unique = await api.get("/api/v1/getkey");
 
-    const res = await axios.post("/api/v1/pay/payment", { amount });
+    const res = await api.post("/api/v1/pay/payment", { amount });
 
     const options = {
       key: unique.data.key,
@@ -112,7 +112,7 @@ function Book({ setOpen, hotelId , days}) {
         "https://avatars.githubusercontent.com/u/158671738?s=400&u=cfa2ffe129d72fff816910f848369c5f70560229&v=4",
       order_id: res.data.data.id,
       handler: async function (response) {
-      await axios.post("/api/v1/pay/verify-and-book", {
+      await api.post("/api/v1/pay/verify-and-book", {
         razorpay_payment_id: response.razorpay_payment_id,
         razorpay_order_id: response.razorpay_order_id,
         razorpay_signature: response.razorpay_signature,
