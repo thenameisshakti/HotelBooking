@@ -1,13 +1,13 @@
 import { useContext, useState } from "react"
 import "./login.css"
 import { AuthContext } from "../../components/context/AuthContext"
-import axios, { AxiosError } from "axios"
 import { useLocation, useNavigate } from "react-router"
+import api from "../../api/apihandler.js"
 
 function Login() {
 
   const location = useLocation() 
-  const backto = location.state.lastpage
+  const backto = location?.state?.lastpage
 
   const [Credential,setCredential] = useState(
     {
@@ -28,10 +28,12 @@ function Login() {
     e.preventDefault() 
     dispatch({type: "LOGIN_START"})
     try{
-      const res =  await axios.post('/api/v1/users/login', Credential,{withCredentials: true})
+      const res =  await api.post('/api/v1/users/login', Credential,{withCredentials: true})
      
       dispatch ({type : "LOGIN_SUCCESS" , payload: res.data.data})
-      navigate(`${backto}`)
+      if(!backto){
+        navigate('/')
+      }else navigate(`${backto}`)
       
 
     }catch(error) {

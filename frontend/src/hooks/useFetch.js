@@ -1,8 +1,7 @@
 import {useEffect, useState} from "react"
-import axios from "axios"
+import api from '../api/apihandler.js'
 
 function useFetch(url) {
-    console.log(`${url} this url`)
     const [data ,setData] = useState([])
     const[loading,setLoading] = useState(false)
     const [error,setError] = useState(null)
@@ -13,7 +12,7 @@ function useFetch(url) {
             setLoading(true)
             try{
                 console.log(`we are in useFetch useEffect response is received and we set our data now ${url}`)
-                const response = await axios.get(url)
+                const response = await api.get(url)
                 console.log(response.data,"------- > fetching in the useEffect")
                 
                 setData(response.data.data)
@@ -31,7 +30,7 @@ function useFetch(url) {
         setLoading(true)
         try{
             console.log(`refectch is used for get data to set from  ${url}`)
-            const response = await axios.get(url)
+            const response = await api.get(url)
             
             setData(response.data.data)
         }catch(error) {

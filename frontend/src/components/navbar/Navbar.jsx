@@ -1,7 +1,7 @@
 import React, { useContext } from 'react'
 import { Link, useLocation, useNavigate } from 'react-router'
 import { AuthContext } from '../context/AuthContext'
-import axios from 'axios'
+import api from '../../api/apihandler.js'
 
 function Navbar() {
   const { user, dispatch } = useContext(AuthContext)
@@ -15,7 +15,7 @@ function Navbar() {
 
   const handleLogout = async () => {
     try {
-      const res = await axios.post(
+      const res = await api.post(
         "/api/v1/users/logout",
         {},
         { withCredentials: true }
