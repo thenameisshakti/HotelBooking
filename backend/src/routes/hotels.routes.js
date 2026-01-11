@@ -12,7 +12,7 @@ import {
   updateReview,
   deleteReview,
   deleteReviewPhoto,
-  getHotelReviews
+  getHotelReviews,
 } from "../controller/hotel.controller.js";
 import { verifyAdmin , verifyUser} from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
@@ -54,6 +54,7 @@ hotelsroute.route("/reviewUpdate/:reviewId").patch(verifyUser,
     updateReview);
 hotelsroute.route('/reviewDelete/:reviewId').delete(verifyUser,deleteReview)
 hotelsroute.route('/reviewDeletePhoto/:reviewId/:reviewPhotoId').patch(verifyUser,deleteReviewPhoto) 
-hotelsroute.route('/review/:hotelId').get(verifyUser,getHotelReviews) 
+hotelsroute.route('/review/:hotelId').get(getHotelReviews) 
+
 
 export default hotelsroute;
