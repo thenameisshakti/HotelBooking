@@ -17,9 +17,18 @@ const hotelReviewSchema = new mongoose.Schema({
     },
     rating: {
         type: Number,
-        required: true,
-        min:0 ,
-        max: 5,
+        min: 0,
+        max: 5 ,
+        require: true
+    },
+     categoryRatings: {
+      staff: { type: Number, min: 0, max: 5, required: true },
+      facilities: { type: Number, min: 0, max: 5, required: true },
+      cleanliness: { type: Number, min: 0, max: 5, required: true },
+      comfort: { type: Number, min: 0, max: 5, required: true },
+      valueForMoney: { type: Number, min: 0, max: 5, required: true },
+      location: { type: Number, min: 0, max: 5, required: true },
+      freeWifi: { type: Number, min: 0, max: 5, required: true },
     },
     photos: [
         {

@@ -12,7 +12,8 @@ import { SearchContext } from '../../components/context/SearchContext'
 import { AuthContext } from '../../components/context/AuthContext'
 import Book from '../../components/book/Book'
 import Option from '../../components/option/Option'
-import Review from '../../components/review/Review'
+import HotelReview from '../../components/HotelReview/HotelReview'
+import RatingSummary from '../../components/HotelReview/RatingSummary'
 
 function SingleHotel() {
   const location = useLocation()
@@ -161,8 +162,12 @@ function SingleHotel() {
               onClick={handleClick}>Select Room</button>
             </div>}
           </div>
+          <div>
+            <RatingSummary reviewStats={data.reviewStats} />
+          </div>
+          <div>
+            <HotelReview hotelId = {id} /></div>
         </div>
-        <Review />
         <MailList />
         <Footer />
       </div>

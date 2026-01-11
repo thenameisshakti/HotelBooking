@@ -16,14 +16,6 @@ export const raypay = new Razorpay({
     key_secret: process.env.RAZORPAY_API_SECRET
 })
 
-
-app.use(
-  "/api/v1/pay/razorpay-webhook",
-  express.raw({ type: "application/json" })
-);
-
-
-
 app.use(
     express.json({
         limit: "16kb"
@@ -63,9 +55,5 @@ app.get('/api/v1/getkey',(req,res) => {
     res.status(200).json({key: process.env.RAZORPAY_API_KEY})})
 
 app.use(errorHandler)
-
-
-
-
 
 export {app}
