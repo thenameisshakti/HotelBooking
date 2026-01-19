@@ -10,10 +10,25 @@
     "preview": "vite preview"
   },
   "dependencies": {
+    "@emotion/react": "^11.14.0",
+    "@emotion/styled": "^11.14.1",
+    "@mui/icons-material": "^7.3.7",
+    "@mui/material": "^7.3.7",
+    "@mui/x-data-grid": "^8.25.0",
     "@tailwindcss/vite": "^4.1.13",
-    "react": "^19.1.1",
-    "react-dom": "^19.1.1",
-    "tailwindcss": "^4.1.13"
+    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/react": "^16.3.1",
+    "@testing-library/user-event": "^14.6.1",
+    "axios": "^1.13.2",
+    "react": "^19.2.3",
+    "react-circular-progressbar": "^2.2.0",
+    "react-dom": "^19.2.3",
+    "react-router-dom": "^7.12.0",
+    "react-scripts": "^5.0.1",
+    "recharts": "^3.6.0",
+    "sass": "^1.97.2",
+    "tailwindcss": "^4.1.13",
+    "web-vitals": "^5.1.0"
   },
   "devDependencies": {
     "@eslint/js": "^9.35.0",
