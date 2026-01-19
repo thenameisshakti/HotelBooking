@@ -13,14 +13,16 @@ import { DateRange } from "react-date-range";
 import { useContext, useState } from "react";
 import "react-date-range/dist/styles.css"; // main css file
 import "react-date-range/dist/theme/default.css"; // theme css file
-import { format } from "date-fns";
+import { format, set } from "date-fns";
 import { useNavigate } from "react-router";
 import { SearchContext } from "../context/SearchContext";
 import { AuthContext } from "../context/AuthContext";
+import { NavLink } from "react-router-dom";
+import Dashboard from "../../pages/dashboard/dashboard";
 
 function Header({ type }) {
   const { user } = useContext(AuthContext);
-
+  console.log(user)
   const [destination, setDestination] = useState();
   const [opendate, setOpendate] = useState(false);
   const [date, setDate] = useState([
@@ -62,10 +64,13 @@ function Header({ type }) {
         }
       >
         <div className="headerList">
-          <div className="headerListItem font-extrabold active">
+          <NavLink to='/'
+          className={({isActive}) => 
+          `headerListItem font-extrabold ${isActive ? "active" : ""}`
+          }>
             <FontAwesomeIcon icon={faBed} />
             <span>Stays</span>
-          </div>
+          </NavLink>
           <div className="headerListItem">
             <FontAwesomeIcon icon={faPlane} />
             <span>Flight</span>
@@ -79,22 +84,36 @@ function Header({ type }) {
             <FontAwesomeIcon icon={faTaxi} />
             <span>Airport taxis</span>
           </div>
-          <div className="headerListItem p-2 font-extrabold hover:outline hover:rounded-2xl">
+          <NavLink to='/dashboard'
+          className ={({isActive}) => 
+          `headerListItem font-extrabold ${isActive ? "active" : ""}`
+          }>
             <FontAwesomeIcon icon={faUser} />
             <span>Dashboard</span>
-          </div>
+          </NavLink>
         </div>
-        {type !== "list" && (
-          <>
-            <h1 className="font-bold text-4xl">Just Search and Book</h1>
+
+            {!user ? (
+              <>
+              <h1 className="font-bold text-4xl">Just Search and Book</h1>
             <p className="headerDesc text-2xl">
               Search low prices on hotels, homes and much more...
             </p>
-            {!user && (
               <button className="headerBtn mb-11 rounded-md">
                 SignIn/Register
               </button>
-            )}
+              </>
+            ): (
+              <> 
+              <h1 className="font-bold text-4xl">{`Where to next ${user.loggedInUser.username} ?`}</h1>
+              <p className="headerDesc text-2xl">
+              Find exclusive Genius rewards in every part of the india!
+            </p>
+              </>
+            )
+            }
+        {type == "home"  && (
+          <>
             <div className="headerSearch">
               <div className="headerSearchItem">
                 <FontAwesomeIcon icon={faBed} className="headerIcon" />

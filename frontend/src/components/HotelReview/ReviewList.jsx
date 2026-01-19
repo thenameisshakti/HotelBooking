@@ -54,7 +54,7 @@ function ReviewList({ reviews }) {
           }}
         >
           {extended.map((review, i) => (
-            <ReviewCard key={i} review={review} />
+            <ReviewCard key={i} review={reviews} />
           ))}
         </div>
       </div>

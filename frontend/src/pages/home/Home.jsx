@@ -11,7 +11,7 @@ function Home() {
   return(
     <div>
       <Navbar />
-      <Header />
+      <Header type = "home" />
       <div className="homeContainer">
        <FeaturedProperties />
         <h1 className="homeTitle">Browser by property type</h1>
