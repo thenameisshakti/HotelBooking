@@ -3,6 +3,7 @@ import "./footer.css";
 
 const Footer = () => {
   return (
+    <div className="flex justify-center">
     <div className="footer">
       <div className="fLists">
         <ul className="fList">
@@ -46,6 +47,7 @@ const Footer = () => {
         </ul>
       </div>
       <div className="fText">Copyright © 2928 Sarai.Com</div>
+    </div>
     </div>
   );
 };
