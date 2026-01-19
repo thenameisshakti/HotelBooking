@@ -1,10 +1,10 @@
 import React, { useContext } from 'react'
-import { Link, useLocation, useNavigate } from 'react-router'
+import { Link, useLocation, useNavigate } from 'react-router-dom'
 import { AuthContext } from '../context/AuthContext'
-import axios from 'axios'
+import api from '../../api/apihandler.js'
 
 function Navbar() {
-  const { user, dispatch } = useContext(AuthContext)
+  const { loading,user, dispatch } = useContext(AuthContext)
   console.log(user)
   const location = useLocation()
   const navigate = useNavigate()
@@ -14,8 +14,9 @@ function Navbar() {
   }
 
   const handleLogout = async () => {
+    dispatch({type: "START"})
     try {
-      const res = await axios.post(
+      const res = await api.post(
         "/api/v1/users/logout",
         {},
         { withCredentials: true }
@@ -48,9 +49,9 @@ function Navbar() {
             <button
               className="
                 px-5 py-2 rounded-md font-medium
-                bg-blue-600 text-white
+                bg-[#0071c2] text-white
                 shadow-sm
-                hover:bg-blue-700
+                hover:bg-[#005fa3]
                 focus:outline-none focus:ring-2 focus:ring-blue-300
                 active:scale-[0.98]
                 transition-all duration-200 ease-in-out
@@ -64,9 +65,9 @@ function Navbar() {
               onClick={handleLogin}
               className="
                 px-5 py-2 rounded-md font-medium
-                bg-blue-600 text-white
+                bg-[#0071c2] text-white
                 shadow-sm
-                hover:bg-blue-700
+                hover:bg-[#005fa3]
                 focus:outline-none focus:ring-2 focus:ring-blue-300
                 active:scale-[0.98]
                 transition-all duration-200 ease-in-out
@@ -80,14 +81,17 @@ function Navbar() {
             {/* Logout Button */}
             <button
               onClick={handleLogout}
+              disabled={loading}
               className="
+                cursor-pointer
                 px-6 py-2 rounded-md font-semibold
-                bg-blue-600 text-white
+                bg-[#0071c2] text-white
                 shadow-sm
-                hover:bg-blue-700
+                hover:bg-[#005fa3]
                 focus:outline-none focus:ring-2 focus:ring-blue-300
                 active:scale-[0.98]
-                transition-all duration-200 ease-in-out
+                transition-all duration-200 ease-in-out 
+
               "
             >
               Logout

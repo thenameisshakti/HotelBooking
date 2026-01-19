@@ -216,6 +216,10 @@ const countByCity = asyncHandler(async (req, res) => {
 
 // })
 
+// const addMutipleRoomsToHotel = asyncHandler (asyncHandler (async (req,res) => {
+
+// }))
+
 const countByType = asyncHandler(async (req, res) => {
   const [hotelCount, apartmentCount, resortCount, villaCount, cabinCount] =
     await Promise.all([
@@ -262,12 +266,14 @@ const reviewHotel = asyncHandler(async (req, res) => {
     hotelId: hotelId,
     userId: req.user._id,
   });
+
   if (existReview) {
     throw new ApiError(404, "you have already reviewed this hotel");
   }
 
   const { description, rating } = req.body;
-  if (!description || !rating) {
+  const categoryRatings = JSON.parse(req.body.categoryRatings);
+  if (!description || !rating || !categoryRatings) {
     throw new ApiError(404, " all fields are required ");
   }
 
@@ -281,11 +287,78 @@ const reviewHotel = asyncHandler(async (req, res) => {
       photosUrl.push({imageUrl: uploaded.url,imagePublicId: uploaded.public_id});
     }
   }
+  const hotel = await Hotels.findById(hotelId)
+  hotel.reviewStats.totalReviews += 1
+  hotel.reviewStats.averageRating = 
+  ((hotel.reviewStats.averageRating * (hotel.reviewStats.totalReviews - 1) + Number(rating)) 
+    / hotel.reviewStats.totalReviews).toFixed(2)
+  console.log(rating, " rating value ")
+  if (rating === "5") hotel.reviewStats.ratingCounts.fiveStar += 1;
+  if (rating === "4") hotel.reviewStats.ratingCounts.fourStar += 1;
+  if (rating === "3") hotel.reviewStats.ratingCounts.threeStar += 1;
+  if (rating === "2") hotel.reviewStats.ratingCounts.twoStar += 1;
+  if (rating === "1") hotel.reviewStats.ratingCounts.oneStar += 1;
+
+  hotel.reviewStats.categoryAverages.staff =
+  (
+    hotel.reviewStats.categoryAverages.staff *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.staff
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.facilities =
+  (
+    hotel.reviewStats.categoryAverages.facilities *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.facilities
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.cleanliness =
+  (
+    hotel.reviewStats.categoryAverages.cleanliness *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.cleanliness
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.comfort =
+  (
+    hotel.reviewStats.categoryAverages.comfort *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.comfort
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.valueForMoney =
+  (
+    hotel.reviewStats.categoryAverages.valueForMoney *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.valueForMoney
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.location =
+  (
+    hotel.reviewStats.categoryAverages.location *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.location
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.freeWifi =
+  (
+    hotel.reviewStats.categoryAverages.freeWifi *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.freeWifi
+  ) / hotel.reviewStats.totalReviews;
+
+
+
+
+  await hotel.save();
+
   const hotelReview = await HotelsReview.create({
     hotelId: hotelId,
     userId: req.user._id,
-    description,
     rating,
+    categoryRatings,
+    description,
     photos: photosUrl || "",
   });
   return res
@@ -295,7 +368,8 @@ const reviewHotel = asyncHandler(async (req, res) => {
 
 const updateReview = asyncHandler(async (req, res) => {
   const reviewId = req.params.reviewId;
-  const {description , rating } = req.body;
+  const {description , rating, } = req.body;
+  const categoryRatings = JSON.parse(req.body.categoryRatings);
 
   const review = await HotelsReview.findById(reviewId);
 
@@ -309,6 +383,68 @@ const updateReview = asyncHandler(async (req, res) => {
 
   if (description) review.description = description;
   if (rating) review.rating = rating;
+  if (categoryRatings) review.categoryRatings = categoryRatings;
+
+  const hotel = await Hotels.findById(review.hotelId)
+  hotel.reviewStats.totalReviews += 1
+  hotel.reviewStats.averageRating = 
+      ((hotel.reviewStats.averageRating * (hotel.reviewStats.totalReviews - 1) + rating) 
+      / hotel.reviewStats.totalReviews).toFixed(2)
+  console.log(rating, " rating value ")
+  if (rating === "5") hotel.reviewStats.ratingCounts.fiveStar += 1;
+  if (rating === "4") hotel.reviewStats.ratingCounts.fourStar += 1;
+  if (rating === "3") hotel.reviewStats.ratingCounts.threeStar += 1;
+  if (rating === "2") hotel.reviewStats.ratingCounts.twoStar += 1;
+  if (rating === "1") hotel.reviewStats.ratingCounts.oneStar += 1;
+
+  hotel.reviewStats.categoryAverages.staff =
+  (
+    hotel.reviewStats.categoryAverages.staff *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.staff
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.facilities =
+  (
+    hotel.reviewStats.categoryAverages.facilities *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.facilities
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.cleanliness =
+  (
+    hotel.reviewStats.categoryAverages.cleanliness *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.cleanliness
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.comfort =
+  (
+    hotel.reviewStats.categoryAverages.comfort *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.comfort
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.valueForMoney =
+  (
+    hotel.reviewStats.categoryAverages.valueForMoney *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.valueForMoney
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.location =
+  (
+    hotel.reviewStats.categoryAverages.location *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.location
+  ) / hotel.reviewStats.totalReviews;
+
+hotel.reviewStats.categoryAverages.freeWifi =
+  (
+    hotel.reviewStats.categoryAverages.freeWifi *
+    (hotel.reviewStats.totalReviews - 1) +
+    categoryRatings.freeWifi
+  ) / hotel.reviewStats.totalReviews;
 
   const photosLocalPath = req.files?.photos?.map((field) => field.path) || []
 
@@ -337,29 +473,81 @@ const updateReview = asyncHandler(async (req, res) => {
     .json(new ApiResponse(200, review, " review updated successfully "));
 });
 
-const deleteReview = asyncHandler(async (req,res) =>{
-    const reviewId = req.params.reviewId
-    const review = await HotelsReview.findById(reviewId).select('userId photos')
+const deleteReview = asyncHandler(async (req, res) => {
+  const reviewId = req.params.reviewId;
+  const review = await HotelsReview.findById(reviewId).select("userId photos");
 
-    if(!review){
-        throw new ApiError (404," review not found ")
-    }
+  if (!review) {
+    throw new ApiError(404, " review not found ");
+  }
 
-    if(review.userId.toString() !== req.user._id.toString()) {
-        throw new ApiError (403, " you are not allowed to delete this review ");
+  if (review.userId.toString() !== req.user._id.toString()) {
+    throw new ApiError(403, " you are not allowed to delete this review ");
+  }
+
+  const hotel = await Hotels.findById(review.hotelId);
+  hotel.reviewStats.totalReviews -= 1;
+  hotel.reviewStats.averageRating =
+   ( (hotel.reviewStats.averageRating * (hotel.reviewStats.totalReviews + 1) -
+      review.rating) /
+    (hotel.reviewStats.totalReviews === 0 ? 1 : hotel.reviewStats.totalReviews)
+).toFixed(2);
+  console.log(review.rating, " rating value ");
+  if (review.rating == 5) hotel.reviewStats.ratingCounts.fiveStar -= 1;
+  if (review.rating === 4) hotel.reviewStats.ratingCounts.fourStar -= 1;
+  if (review.rating === 3) hotel.reviewStats.ratingCounts.threeStar -= 1;
+  if (review.rating === 2) hotel.reviewStats.ratingCounts.twoStar -= 1;
+  if (review.rating === 1) hotel.reviewStats.ratingCounts.oneStar -= 1;
+
+  hotel.reviewStats.categoryRatings.staff =
+    (hotel.reviewStats.categoryRatings.staff *
+      (hotel.reviewStats.totalReviews + 1) -
+      review.categoryRatings.staff) /
+    hotel.reviewStats.totalReviews;
+  hotel.reviewStats.categoryRatings.facilities =
+    (hotel.reviewStats.categoryRatings.facilities *
+      (hotel.reviewStats.totalReviews + 1) -
+      review.categoryRatings.facilities) /
+    hotel.reviewStats.totalReviews;
+  hotel.reviewStats.categoryRatings.cleanliness =
+    (hotel.reviewStats.categoryRatings.cleanliness *
+      (hotel.reviewStats.totalReviews + 1) -
+      review.categoryRatings.cleanliness) /
+    hotel.reviewStats.totalReviews;
+  hotel.reviewStats.categoryRatings.comfort =
+    (hotel.reviewStats.categoryRatings.comfort *
+      (hotel.reviewStats.totalReviews + 1) -
+      review.categoryRatings.comfort) /
+    hotel.reviewStats.totalReviews;
+  hotel.reviewStats.categoryRatings.valueForMoney =
+    (hotel.reviewStats.categoryRatings.valueForMoney *
+      (hotel.reviewStats.totalReviews + 1) -
+      review.categoryRatings.valueForMoney) /
+    hotel.reviewStats.totalReviews;
+  hotel.reviewStats.categoryRatings.location =
+    (hotel.reviewStats.categoryRatings.location *
+      (hotel.reviewStats.totalReviews + 1) -
+      review.categoryRatings.location) /
+    hotel.reviewStats.totalReviews;
+  hotel.reviewStats.categoryRatings.freeWifi =
+    (hotel.reviewStats.categoryRatings.freeWifi *
+      (hotel.reviewStats.totalReviews + 1) -
+      review.categoryRatings.freeWifi) /
+    hotel.reviewStats.totalReviews;
+
+  await hotel.save();
+
+  if (review.photos.length > 0) {
+    for (let photo of review.photos) {
+      console.log("deleting photo from cloudinary", photo.imagePublicId);
+      await deleteFromCloudinary(photo.imagePublicId);
     }
-    
-    if(review.photos.length > 0){
-      for (let photo of review.photos){
-        console.log("deleting photo from cloudinary", photo.imagePublicId)
-        await deleteFromCloudinary (photo.imagePublicId)
-      }
-    }
-    await review.deleteOne();
-    return res
+  }
+  await review.deleteOne();
+  return res
     .status(200)
-    .json (new ApiResponse (200, review, " review deleted successfully "))
-})
+    .json(new ApiResponse(200, review, " review deleted successfully "));
+});
 
 const deleteReviewPhoto = asyncHandler(async (req,res) => {
     const reviewId = req.params.reviewId
@@ -387,7 +575,9 @@ const deleteReviewPhoto = asyncHandler(async (req,res) => {
 })
 
 const getHotelReviews = asyncHandler(async (req, res) => {
+   console.log(" getHotelReviews called ",req.params);
     const { hotelId } = req.params;
+    console.log(hotelId, " hotelId ");
 
     // 1️⃣ Check if hotelId is missing
     if (!hotelId) {
@@ -432,6 +622,30 @@ const getHotelReviews = asyncHandler(async (req, res) => {
         hasMore: skip + reviews.length < totalReviews  // helpful for frontend
     });
 });
+ 
+// const addressRetrieve = asyncHandler(async (req, res) => {
+//   console.log(req.query)
+//   const {address} = req.query
+
+//   if(!address.trim()){
+//     throw new ApiError(400,"adress field is required")
+//   }
+//   const filter = { address : {$regex: address.trim() , $options:"i"}}
+
+//   const hotels = await Hotels.find(filter).sort({address: 1})
+
+//   return res.status(200).json(
+//     new ApiResponse(
+//       200,
+//       { hotels },
+//       "hotels fetched by address"
+//     )
+//   );
+// });
+
+
+
+
 
 
 export {

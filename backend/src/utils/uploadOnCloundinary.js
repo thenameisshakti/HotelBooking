@@ -10,7 +10,6 @@ cloudinary.config({
 const uploadOnCloudinary = async(filepath) => {
     
     try{
-        
         if(!filepath) return null
         
         const response = await cloudinary.uploader.upload(
@@ -21,12 +20,12 @@ const uploadOnCloudinary = async(filepath) => {
         )
         console.log("file uploaded on cloudinay")
 
-        fs.unlinkSync(filepath)
+        await fs.unlinkSync(filepath)
         return response
 
     }catch (error) {
         console.log("error while uploading file in cloudinary")
-        fs.unlinkSync(filepath)
+        await fs.unlinkSync(filepath)
         return null
 
     }

@@ -1,13 +1,14 @@
 import { useContext, useState } from "react"
 import "./login.css"
 import { AuthContext } from "../../components/context/AuthContext"
-import axios, { AxiosError } from "axios"
 import { useLocation, useNavigate } from "react-router"
+import api from "../../api/apihandler.js"
+import { toast } from "react-toastify"
 
 function Login() {
 
   const location = useLocation() 
-  const backto = location.state.lastpage
+  const backto = location?.state?.lastpage
 
   const [Credential,setCredential] = useState(
     {
@@ -18,7 +19,7 @@ function Login() {
   const navigate = useNavigate()
 
   const {loading,error,dispatch} = useContext(AuthContext)
-
+  console.log(typeof loading)
   const handleChange =(e) => {
     setCredential(perv => ({...perv , [e.target.id] : e.target.value}))
 
@@ -26,12 +27,17 @@ function Login() {
  
   const handleClick = async (e) => {
     e.preventDefault() 
-    dispatch({type: "LOGIN_START"})
+
+    dispatch({type: "START"})
     try{
-      const res =  await axios.post('/api/v1/users/login', Credential,{withCredentials: true})
-     
+      const res =  await api.post('/api/v1/users/login', Credential,{withCredentials: true})
+      if(res.data){
+        toast.success("Logged in successfully")
+      }
       dispatch ({type : "LOGIN_SUCCESS" , payload: res.data.data})
-      navigate(`${backto}`)
+      if(!backto){
+        navigate('/')
+      }else navigate(`${backto}`)
       
 
     }catch(error) {
@@ -58,8 +64,9 @@ function Login() {
         type="password" placeholder="your password" id="password"/>
         </div>
         <button
+        disabled={loading}
         onClick={handleClick}
-        className="lButton" > Log in </button>
+        className="lButton" > {loading ? "Loading " : "Log in" }</button>
        
       </div>
        {error && <span>{error}</span>}
