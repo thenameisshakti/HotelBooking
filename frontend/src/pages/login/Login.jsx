@@ -1,79 +1,145 @@
-import { useContext, useState } from "react"
-import "./login.css"
-import { AuthContext } from "../../components/context/AuthContext"
-import { useLocation, useNavigate } from "react-router"
-import api from "../../api/apihandler.js"
-import { toast } from "react-toastify"
-
+import { useContext, useState } from "react";
+import "./login.css";
+import { AuthContext } from "../../components/context/AuthContext";
+import { useLocation, useNavigate } from "react-router";
+import api from "../../api/apihandler.js";
+import { toast } from "react-toastify";
+import { GoogleLogin } from "@react-oauth/google";
+import loginImg from "../../../src/assets/login.jpg"
 function Login() {
+  const location = useLocation();
+  const backto = location?.state?.lastpage;
+  console.log(backto)
 
-  const location = useLocation() 
-  const backto = location?.state?.lastpage
+  const [Credential, setCredential] = useState({
+    username: undefined,
+    password: undefined,
+  });
 
-  const [Credential,setCredential] = useState(
-    {
-      username: undefined,
-      password: undefined
-    }
-  )
-  const navigate = useNavigate()
+  const navigate = useNavigate();
+  const { loading, error, dispatch } = useContext(AuthContext);
 
-  const {loading,error,dispatch} = useContext(AuthContext)
-  console.log(typeof loading)
-  const handleChange =(e) => {
-    setCredential(perv => ({...perv , [e.target.id] : e.target.value}))
+  const handleChange = (e) => {
+    setCredential((prev) => ({
+      ...prev,
+      [e.target.id]: e.target.value,
+    }));
+  };
 
-  }
- 
   const handleClick = async (e) => {
-    e.preventDefault() 
+    e.preventDefault();
+    dispatch({ type: "START" });
 
-    dispatch({type: "START"})
-    try{
-      const res =  await api.post('/api/v1/users/login', Credential,{withCredentials: true})
-      if(res.data){
-        toast.success("Logged in successfully")
-      }
-      dispatch ({type : "LOGIN_SUCCESS" , payload: res.data.data})
-      if(!backto){
-        navigate('/')
-      }else navigate(`${backto}`)
-      
+    try {
+      const res = await api.post(
+        "/api/v1/users/login",
+        Credential,
+        { withCredentials: true }
+      );
 
-    }catch(error) {
-      dispatch({type: "LOGIN_FAIL", payload: error.response.data.message})
+      toast.success("Logged in successfully");
+      console.log(res.data.data, "normal login")
+      dispatch({ type: "LOGIN_SUCCESS", payload: res.data.data });
+
+      navigate(backto || "/");
+    } catch (error) {
+      dispatch({
+        type: "LOGIN_FAIL",
+        payload: error.response?.data?.message,
+      });
     }
-  }
-
-
-  
-
+  };
 
   return (
-    <div className="h-screen grid place-content-center">
-      <div className="border-1">
+    <div className="login-page">
+      {/* LEFT CARD */}
+      <div className="login-card">
+        <h2 className="login-title">Login</h2>
 
-        <div className=" grid grid-cols-1">
-        <input 
-        onChange={handleChange}
-        className=" border-2 p-2 m-2 focus:outline-none"
-        type="text" placeholder="enter your @username" id="username"/>
         <input
-        onChange={handleChange}
-        className=" border-2 p-2 m-2 focus:outline-none"
-        type="password" placeholder="your password" id="password"/>
+          className="login-input"
+          type="text"
+          placeholder="Username"
+          id="username"
+          onChange={handleChange}
+        />
+
+        <input
+          className="login-input"
+          type="password"
+          placeholder="Password"
+          id="password"
+          onChange={handleChange}
+        />
+
+        <div className="login-options">
+          <span className="forgot">Forgot Password?</span>
         </div>
+
         <button
-        disabled={loading}
-        onClick={handleClick}
-        className="lButton" > {loading ? "Loading " : "Log in" }</button>
-       
+          className="lButton"
+          disabled={loading}
+          onClick={handleClick}
+        >
+          {loading ? "Logging in..." : "Login"}
+        </button>
+
+        {error && <span className="login-error">{error}</span>}
+
+        <div className="divider">
+          <span>Or login with</span>
+        </div>
+
+        {/* GOOGLE LOGIN */}
+        <div className="social-login">
+          <GoogleLogin
+            onSuccess={async (credentialResponse) => {
+              try {
+                dispatch({ type: "START" });
+
+                const res = await api.post(
+                  "/api/v1/users/googleAuth",
+                  { token: credentialResponse.credential },
+                  { withCredentials: true }
+                );
+                console.log(res.data.data)
+                dispatch({
+                  type: "LOGIN_SUCCESS",
+                  payload: res.data.data,
+                });
+
+                navigate(backto || "/");
+              } catch {
+                dispatch({
+                  type: "LOGIN_FAIL",
+                  payload: "Google login failed",
+                });
+              }
+            }}
+            onError={() =>
+              dispatch({
+                type: "LOGIN_FAIL",
+                payload: "Google login failed",
+              })
+            }
+          />
+        </div>
+
+        <p className="register-link">
+          No account yet?{" "}
+          <span onClick={() => navigate("/register")}>Register</span>
+        </p>
       </div>
-       {error && <span>{error}</span>}
-       
-        
+
+      {/* RIGHT ILLUSTRATION */}
+      <div className="login-illustration">
+        <img
+          src={loginImg}
+          alt="login"
+        />
+      </div>
     </div>
-  )
+  );
 }
 
-export default Login
+export default Login;

@@ -8,7 +8,7 @@ function ReviewCard({ review }) {
       "
     >
       <div className="flex justify-between items-center mb-2">
-        <span className="font-semibold">@username</span>
+        <span className="font-semibold">@{review.user.username}</span>
         <span className="bg-[#003580] text-white text-sm px-2 py-1 rounded">
           {review.rating}.0
         </span>

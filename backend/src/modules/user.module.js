@@ -6,7 +6,6 @@ import jwt from "jsonwebtoken"
 const userSchema = new Schema({
     username: {
         type: String,
-        required: true,
         unique: true
     },
     name: {
@@ -26,7 +25,6 @@ const userSchema = new Schema({
     },
     password: {
         type: String,
-        required: true
     },
    
     refreshToken : {
@@ -35,6 +33,13 @@ const userSchema = new Schema({
     isAdmin: {
         type: Boolean,
         default: false
+    },
+    googleId:{
+        type: String
+    },
+    modeOfAuth: {
+        type: String,
+        enum: ["local","google"]
     }
 },{timestamps: true})
 

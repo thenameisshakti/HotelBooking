@@ -53,8 +53,8 @@ function ReviewList({ reviews }) {
             transform: `translateX(-${index * (CARD_WIDTH + GAP)}px)`,
           }}
         >
-          {extended.map((review, i) => (
-            <ReviewCard key={i} review={reviews} />
+          {extended.map((review, index) => (
+            <ReviewCard key={index} review={review} />
           ))}
         </div>
       </div>
