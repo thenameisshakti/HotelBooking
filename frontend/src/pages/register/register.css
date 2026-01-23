@@ -1,0 +1,163 @@
+/* ===== PAGE LAYOUT ===== */
+.register-page {
+  min-height: 100vh;
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  background: #f8fafc;
+}
+
+/* ===== LEFT FORM ===== */
+.register-container {
+  display: grid;
+  place-items: center;
+}
+
+.register-card {
+  width: 360px;
+  background: white;
+  padding: 30px 24px;
+  border-radius: 16px;
+  text-align: center;
+  box-shadow: 0 15px 40px rgba(0, 0, 0, 0.08);
+}
+
+/* ===== USERNAME PREVIEW ===== */
+.profile-username {
+  color: #0071c2;
+  font-weight: 600;
+  margin-bottom: 12px;
+}
+
+/* ===== AVATAR ===== */
+.avatar-wrapper {
+  position: relative;
+  width: 120px;
+  height: 120px;
+  margin: auto;
+}
+
+.avatar-img {
+  width: 100%;
+  height: 100%;
+  border-radius: 50%;
+  object-fit: cover;
+  border: 3px solid #0071c2;
+}
+
+.avatar-remove {
+  position: absolute;
+  top: -6px;
+  right: -6px;
+  background: #e53935;
+  color: white;
+  border: none;
+  border-radius: 50%;
+  width: 24px;
+  height: 24px;
+  font-size: 18px;
+  cursor: pointer;
+}
+
+/* ===== CHANGE PHOTO ===== */
+.change-photo-btn {
+  margin-top: 10px;
+  background: #eef6fc;
+  border: none;
+  padding: 8px 14px;
+  border-radius: 20px;
+  color: #0071c2;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ===== INPUTS (OLD STYLE PRESERVED) ===== */
+.input-group {
+  margin-top: 16px;
+}
+
+.input-group input {
+  width: 100%;
+  border: none;
+  border-bottom: 1px solid #ddd;
+  padding: 10px 6px;
+  outline: none;
+  font-size: 14px;
+  background: transparent;
+}
+
+.input-group input:focus {
+  border-bottom-color: #0071c2;
+}
+
+/* ===== USERNAME STATUS ===== */
+.username-status {
+  min-height: 16px;
+  font-size: 12px;
+  text-align: left;
+}
+
+/* ===== REGISTER BUTTON ===== */
+.register-btn {
+  width: 100%;
+  margin-top: 18px;
+  padding: 14px;
+  background: #0071c2;
+  color: white;
+  border: none;
+  border-radius: 30px;
+  font-weight: bold;
+  cursor: pointer;
+}
+
+.register-btn:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+/* ===== DIVIDER ===== */
+.divider {
+  text-align: center;
+  margin: 20px 0;
+  color: #aaa;
+  font-size: 13px;
+}
+
+/* ===== GOOGLE LOGIN ===== */
+.social-login {
+  display: flex;
+  justify-content: center;
+}
+
+/* ===== LOGIN LINK ===== */
+.login-link {
+  margin-top: 18px;
+  font-size: 14px;
+}
+
+.login-link span {
+  color: #0071c2;
+  font-weight: 600;
+  cursor: pointer;
+}
+
+/* ===== RIGHT IMAGE ===== */
+.register-illustration {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+}
+
+.register-illustration img {
+  max-width: 80%;
+}
+
+/* ===== MOBILE ===== */
+@media (max-width: 900px) {
+  .register-page {
+    grid-template-columns: 1fr;
+  }
+
+  .register-illustration {
+    display: none;
+  }
+}

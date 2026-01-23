@@ -9,6 +9,10 @@ function Navbar() {
   const location = useLocation()
   const navigate = useNavigate()
 
+  const handleRegister = () => {
+    navigate('/register')
+  }
+
   const handleLogin = () => {
     navigate("/login", { state: { lastpage: location.pathname } })
   }
@@ -47,6 +51,7 @@ function Navbar() {
           <div className="flex space-x-4">
             {/* Register Button */}
             <button
+              onClick={handleRegister}
               className="
                 px-5 py-2 rounded-md font-medium
                 bg-[#0071c2] text-white

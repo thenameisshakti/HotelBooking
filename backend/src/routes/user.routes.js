@@ -8,6 +8,8 @@ import {
   register,
   updateUser,
   refreshAccessToken,
+  checkUsername,
+  googleAuth,
 } from "../controller/user.controller.js";
 import { verifyAdmin, verifyUser } from "../middlewares/auth.middleware.js";
 import { getAllRoom } from "../controller/room.controller.js";
@@ -22,6 +24,8 @@ userroute.route("/register").post(
   ]),
   register
 );
+userroute.route("/googleAuth").post(googleAuth)
+userroute.route('/checkUsername').get(checkUsername)
 userroute.route("/login").post(login);
 userroute.route("/logout").post(verifyUser, logout);
 userroute.route("/refreshAccessToken").post(refreshAccessToken);

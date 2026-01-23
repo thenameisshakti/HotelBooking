@@ -5,6 +5,64 @@ import { Users } from "../modules/user.module.js";
 import { uploadOnCloudinary } from "../utils/uploadOnCloundinary.js";
 import generateAccessandRefresh from "../utils/generateAccessandRefresh.js";
 import jwt from "jsonwebtoken"
+import googleClient from "../utils/googleClients.js";
+
+const googleAuth = asyncHandler (async(req,res) => {
+    const {token} = req.body
+
+    if(!token){
+      throw new ApiError(400, "Google tokenn is required")
+      
+    }
+
+    const ticket = await googleClient.verifyIdToken({
+      idToken: token,
+      audience: process.env.GOOGLE_CLIENT_ID
+    })
+
+    const payload = ticket.getPayload()
+    console.log(payload)
+
+    const {email, name, picture, sub } = payload
+
+    if(!email) {
+      throw new ApiError(400, "Google account has no email")
+    }
+
+    let user = await Users.findOne({email})
+    console.log(user)
+    if(!user) {
+     user = await Users.create({
+        email,
+        name,
+        img: picture,
+        googleId: sub,
+        modeOfAuth: ["google"]
+      })
+    }
+
+    if(!user) {
+      throw new ApiError (400, "Unable to to create the user")
+    }
+    console.log(user)
+    const {accessToken,refreshToken} = await generateAccessandRefresh(user._id)
+
+    const options = {
+      httpOnly: true,
+      secure: false // true in production with HTTPs
+    }
+    console.log("user login and register by the google")
+    return res 
+    .status(200)
+    .cookie("accessToken", accessToken, options)
+    .cookie("refreshToken", refreshToken, options)
+    .json (
+      new ApiResponse(200, {loggedInUser: user} , "Google login successful")
+    )
+
+    
+
+})
 
 const register = asyncHandler(async (req, res) => {
   const { username, name, password, email, ...other } = req.body;
@@ -13,11 +71,7 @@ const register = asyncHandler(async (req, res) => {
     throw new ApiError(404, "enter the all the required field");
   }
 
-  const existUser = await Users.findOne({ username });
-
-  if (existUser) {
-    throw new ApiError(404, " User exist already");
-  }
+  console.log(req.files)
 
   const imglocalpath = req.files?.img[0]?.path;
 
@@ -82,6 +136,20 @@ const login = asyncHandler(async (req, res) => {
       new ApiResponse(200, { loggedInUser }, "user logged in Successfully")
     );
 });
+
+const checkUsername = asyncHandler(async (req,res) => {
+   const {username} = req.query
+  
+   const exist = await Users.findOne({username: username})
+
+   if(exist) {
+    throw new ApiError(409, "user name already exisit")
+   }
+
+   return res
+   .status(200)
+   .json(new ApiResponse(200,{username},"available username"))
+})
 
 const logout = asyncHandler(async (req, res) => {
   const user = await Users.findByIdAndUpdate(
@@ -216,4 +284,6 @@ export {
   deleteUser,
   getUser,
   refreshAccessToken,
+  checkUsername,
+  googleAuth,
 };

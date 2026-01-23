@@ -6,6 +6,7 @@ import {uploadOnCloudinary, deleteFromCloudinary} from "../utils/uploadOnCloundi
 import { Rooms } from "../modules/rooms.module.js";
 import { HotelsReview } from "../modules/hotelsReview.module.js";
 import {MAX_IMAGE_UPLOAD} from "../utils/constant.js";
+import mongoose from "mongoose";
 
 
 const createHotel = asyncHandler(async (req, res) => {
@@ -575,9 +576,7 @@ const deleteReviewPhoto = asyncHandler(async (req,res) => {
 })
 
 const getHotelReviews = asyncHandler(async (req, res) => {
-   console.log(" getHotelReviews called ",req.params);
     const { hotelId } = req.params;
-    console.log(hotelId, " hotelId ");
 
     // 1️⃣ Check if hotelId is missing
     if (!hotelId) {
@@ -608,7 +607,27 @@ const getHotelReviews = asyncHandler(async (req, res) => {
     }
 
     // 6️⃣ Fetch reviews
-    const reviews = await HotelsReview.find({ hotelId })
+    const reviews = await HotelsReview.aggregate([
+      {
+        $match: {hotelId : new mongoose.Types.ObjectId(hotelId)}
+      },
+      {
+        $lookup: {
+          from: "users" ,
+          localField: "userId",
+          foreignField: "_id",
+          as: "user",
+          pipeline: [
+            {
+            $project : {
+              _id: 0,
+            username: 1
+          }
+        }]
+      }
+      },
+      { $unwind: "$user" }
+    ])
         .sort({ createdAt: -1 })  // newest first
         .skip(skip)
         .limit(limit);

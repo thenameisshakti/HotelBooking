@@ -4,9 +4,11 @@ import WriteReviewModal from "./WriteReviewModal";
 import api from "../../api/apihandler.js"
 import { AuthContext } from "../context/AuthContext.jsx";
 import ReviewsDrawer from "./ReviewDrawer.jsx";
-
+import { useLocation,useNavigate } from "react-router";
 
 function HotelReviews({ hotelId }) {
+  const location = useLocation()
+  const navigate = useNavigate()
   const {user} = useContext(AuthContext)
   const [reviews, setReviews] = useState([]);
   const [open, setOpen] = useState(false);
@@ -26,6 +28,11 @@ function HotelReviews({ hotelId }) {
     }
   };
 
+  const handleWriteReview = () => {
+    if(!user) navigate('/login')
+    setOpen(true)
+  }
+
   useEffect(() => {
     fetchReviews();
   }, []);
@@ -38,19 +45,21 @@ function HotelReviews({ hotelId }) {
         </h2>
 
         {/* Button is shown only if user is logged in (backend will still protect) */}
-       { user && <button
-          onClick={() => setOpen(true)}
+       {<button
+          onClick={handleWriteReview}
           className="bg-[#0071c2] hover:bg-[#005fa3] text-white px-4 py-2 rounded cursor-pointer"
         >
           Write review
         </button>}
       </div>
-
+      {console.log(reviews)}
       {loading ? (
         <p>Loading reviews...</p>
-      ) : (
-        <ReviewList reviews={reviews} />
-      )}
+      ) : reviews.length > 0  ? (
+        <ReviewList reviews={reviews} /> ): (
+          <p>No reviews yet. Be the first to write one!</p>
+        )
+      }
       <ReviewsDrawer
         open={drawerOpen}
         onClose={() => setDrawerOpen(false)}
