@@ -1,7 +1,7 @@
 import { raypay } from "../app.js";
 import asyncHandler from "../utils/asyncHandler.js";
 import crypto, { verify } from "crypto";
-import { PaymentMDB } from "../modules/payment.module.js";
+import Payment from "../modules/payment.module.js";
 import { Rooms } from "../modules/rooms.module.js";
 import mongoose from "mongoose";
 import { getDatesInRange } from "../utils/dateRange.js";
@@ -10,67 +10,76 @@ import ApiError from "../utils/ApiError.js";
 import ApiResponse from "../utils/ApiResponse.js";
 import { Lock } from "../modules/lock.modules.js";
 import { Booking } from "../modules/booking.module.js";
-const Payment = asyncHandler(async (req, res) => {
-  console.log("payment api is called");
-  var options = {
-    amount: Number(req.body.amount) * 100,
+import UserBookingHistory from "../modules/userHistoryBooking.modules.js";
+import Refund from "../modules/refund.modules.js";
+
+const pocessingPayment = asyncHandler(async (req, res) => {
+  console.log(req.body);
+  const { amount, lockIds } = req.body;
+  const userId = req.user._id;
+
+  const now = new Date();
+  const expiresAt = new Date(now.getTime() + 14 * 60 * 1000);
+
+  const order = await raypay.orders.create({
+    amount: Number(amount) * 100,
     currency: "INR",
-  };
+  });
 
-  const order = await raypay.orders.create(options);
-
-  // console.log(order);
+  await Payment.create({
+    userId,
+    razorpayOrderId: order.id,
+    lockIds,
+    amount,
+    currency: "INR",
+    expiresAt,
+    status: "created",
+  });
 
   return res
     .status(200)
-    .json({ success: true, data: order, message: "Success Operation" });
-});
-
-const PaymentVerification = asyncHandler(async (req, res) => {
-  console.log("verification will be done")
-  const { razorpay_order_id, razorpay_payment_id, razorpay_signature } =
-    req.body;
-  const body = razorpay_order_id + "|" + razorpay_payment_id;
-
-  const expectedSignature = crypto
-    .createHmac("sha256", process.env.RAZORPAY_API_SECRET)
-    .update(body.toString())
-    .digest("hex");
-
-  const isAuthentic = expectedSignature === razorpay_signature;
-
-  if (isAuthentic) {
-    await PaymentMDB.create({
-      razorpay_order_id,
-      razorpay_payment_id,
-      razorpay_signature,
-    });
-
-    return res.redirect(
-      `/paymentsuccess?pay=${razorpay_payment_id}&order=${razorpay_order_id}`
-    );
-  } else {
-    return res.status(400).json({ success: false });
-  }
+    .json(new ApiResponse(200, { order, expiresAt }, "Proceed to the payment"));
 });
 
 const verifyAndBook = asyncHandler(async (req, res) => {
-  console.log("inside the verify and book")
-  console.log(req.body)
-  const {
-    razorpay_payment_id,
-    razorpay_order_id,
-    razorpay_signature,
-    lockIds,
-  } = req.body;
+  console.log("inside the verify")
+  const { razorpay_payment_id, razorpay_order_id, razorpay_signature } =
+    req.body;
 
-  if (!Array.isArray(lockIds) || lockIds.length === 0) {
-    throw new ApiError(400, "No locks provided");
+  const now = new Date();
+
+  /* --------------------------------------------------
+     1. Fetch payment attempt (SOURCE OF TRUTH)
+  -------------------------------------------------- */
+  const paymentRecord = await Payment.findOne({
+    razorpayOrderId: razorpay_order_id,
+  });
+
+  if (!paymentRecord) {
+    throw new ApiError(404, "Payment record not found");
   }
 
-  /* --------------------------------------------------- */
-  /* 1️⃣ Verify Razorpay signature                        */
-  /* --------------------------------------------------- */
+  if (paymentRecord.status !== "created") {
+    // idempotency protection
+    return res.status(200).json({
+      message: "Booking already processed",
+    });
+  }
+
+  /* --------------------------------------------------
+     2. Enforce PAYMENT EXPIRY (14 min cutoff)
+  -------------------------------------------------- */
+  if (now > paymentRecord.expiresAt) {
+    paymentRecord.status = "expired";
+    await paymentRecord.save();
+
+    // refund will be triggered later (or webhook)
+    throw new ApiError(409, "Payment session expired");
+  }
+
+  /* --------------------------------------------------
+     3. Verify Razorpay signature
+  -------------------------------------------------- */
   const body = `${razorpay_order_id}|${razorpay_payment_id}`;
   const expectedSignature = crypto
     .createHmac("sha256", process.env.RAZORPAY_API_SECRET)
@@ -81,63 +90,75 @@ const verifyAndBook = asyncHandler(async (req, res) => {
     throw new ApiError(400, "Invalid payment signature");
   }
 
-  /* --------------------------------------------------- */
-  /* 2️⃣ Verify payment with Razorpay server              */
-  /* --------------------------------------------------- */
+  /* --------------------------------------------------
+     4. Fetch Razorpay payment
+  -------------------------------------------------- */
   const payment = await raypay.payments.fetch(razorpay_payment_id);
   if (payment.status !== "captured") {
     throw new ApiError(400, "Payment not captured");
   }
 
-  /* --------------------------------------------------- */
-  /* 3️⃣ Fetch & validate ALL locks                       */
-  /* --------------------------------------------------- */
-  const locks = await Lock.find({ _id: { $in: lockIds } });
+  /* --------------------------------------------------
+     5. Fetch locks OWNED by this payment
+  -------------------------------------------------- */
+  const locks = await Lock.find({
+    _id: { $in: paymentRecord.lockIds },
+    status: "hold",
+  });
 
-  if (locks.length !== lockIds.length) {
-    throw new ApiError(409, "Some locks expired");
+  if (locks.length !== paymentRecord.lockIds.length) {
+    // payment ok, inventory lost → refund
+    paymentRecord.status = "captured";
+    await paymentRecord.save();
+
+    throw new ApiError(
+      409,
+      "Room no longer available, payment will be refunded",
+    );
   }
 
-  const now = new Date();
+  /* --------------------------------------------------
+     6. Validate lock expiry (inventory authority)
+  -------------------------------------------------- */
   for (const lock of locks) {
-    if (lock.status !== "hold" || lock.expiresAt < now) {
-      throw new ApiError(409, "Session expired");
+    if (lock.expiresAt < now) {
+      paymentRecord.status = "captured";
+      await paymentRecord.save();
+
+      throw new ApiError(409, "Session expired, payment will be refunded");
     }
   }
 
-  /* --------------------------------------------------- */
-  /* 4️⃣ Batch-fetch rooms & calculate amount             */
-  /* --------------------------------------------------- */
-  const roomIds = [...new Set(locks.map(l => l.roomId.toString()))];
+  /* --------------------------------------------------
+     7. Create bookings (TRANSACTION)
+  -------------------------------------------------- */
+  const session = await mongoose.startSession();
+  session.startTransaction();
 
-  const rooms = await Rooms.find(
-    { _id: { $in: roomIds } },
-    { price: 1 }
-  );
-
-  if (rooms.length !== roomIds.length) {
-    throw new ApiError(404, "Room not found");
-  }
-
-  const roomPriceMap = new Map(
-    rooms.map(r => [r._id.toString(), r.price])
-  );
-
-  let expectedAmount = 0;
+  try {
   const bookingDocs = [];
   const roomUpdates = [];
-  const lockDeleteIds = [];
+  const lockIds = [];
 
-  // one checkout → one groupBookingId
   const groupBookingId = generateGroupBookingId();
 
-  for (const lock of locks) {
-    const price = roomPriceMap.get(lock.roomId.toString());
-    const dates = getDatesInRange(lock.startDate, lock.endDate);
-    const nights = dates.length;
-    const roomAmount = price * nights;
+  // Collect stay-level info
+  let userId;
+  let hotelId;
+  let earliestStartDate = null;
+  let latestEndDate = null;
 
-    expectedAmount += roomAmount;
+  for (const lock of locks) {
+    userId = lock.userId;
+    hotelId = lock.hotelId;
+
+    if (!earliestStartDate || lock.startDate < earliestStartDate) {
+      earliestStartDate = lock.startDate;
+    }
+
+    if (!latestEndDate || lock.endDate > latestEndDate) {
+      latestEndDate = lock.endDate;
+    }
 
     bookingDocs.push({
       groupBookingId,
@@ -147,7 +168,7 @@ const verifyAndBook = asyncHandler(async (req, res) => {
       roomNumberId: lock.roomNumberId,
       startDate: lock.startDate,
       endDate: lock.endDate,
-      amount: roomAmount,
+      amount: paymentRecord.amount,
       paymentProvider: "RAZORPAY",
       paymentOrderId: razorpay_order_id,
       paymentId: razorpay_payment_id,
@@ -159,53 +180,120 @@ const verifyAndBook = asyncHandler(async (req, res) => {
         filter: { "roomNumbers._id": lock.roomNumberId },
         update: {
           $push: {
-            "roomNumbers.$.unavailableDates": { $each: dates },
+            "roomNumbers.$.unavailableDates": {
+              $each: getDatesInRange(lock.startDate, lock.endDate),
+            },
           },
         },
       },
     });
 
-    lockDeleteIds.push(lock._id);
+    lockIds.push(lock._id);
   }
 
-  // if (payment.amount !== expectedAmount * 100) {
-  //   throw new ApiError(400, "Amount mismatch");
-  // }
+  // 1️⃣ Create Booking documents (PER ROOM)
+  const createdBookings = await Booking.insertMany(
+    bookingDocs,
+    { session }
+  );
 
-  /* --------------------------------------------------- */
-  /* 5️⃣ TRANSACTION: booking + inventory + cleanup       */
-  /* --------------------------------------------------- */
-  const session = await mongoose.startSession();
-  session.startTransaction();
+  // 2️⃣ Create ONE UserBookingHistory (PER STAY)
+  await UserBookingHistory.create(
+    [{
+      userId,
+      hotel: hotelId,
+      groupBookingId,
+      checkIn: earliestStartDate,
+      checkOut: latestEndDate,
+      status: "confirmed",
+      reviewed: false,
+      roomsCount: createdBookings.length,
+      payment: {
+        amount: paymentRecord.amount,
+        currency: paymentRecord.currency || "INR",
+      },
+      bookedAt: new Date(),
+    }],
+    { session }
+  );
 
-  try {
-    await Booking.insertMany(bookingDocs, { session });
-    await Rooms.bulkWrite(roomUpdates, { session });
-    await Lock.deleteMany({ _id: { $in: lockDeleteIds } }, { session });
+  // 3️⃣ Update rooms availability
+  await Rooms.bulkWrite(roomUpdates, { session });
 
-    await session.commitTransaction();
-    session.endSession();
+  // 4️⃣ Confirm locks
+  await Lock.updateMany(
+    { _id: { $in: lockIds } },
+    { status: "confirmed" },
+    { session }
+  );
 
-    return res
-    .status(200)
-    .json(200, {groupBookingId,razorpay_payment_id,razorpay_order_id},"Booking Confirmed successfully")
-      
-      
-    //   {
-    //   success: true,
-    //   message: "Booking confirmed successfully",
-    //   data: {
-    //     groupBookingId,
-    //     paymentId: razorpay_payment_id,
-    //     orderId: razorpay_order_id,
-    //   },
-    // }
+  // 5️⃣ Update payment record
+  paymentRecord.status = "captured";
+  paymentRecord.razorpayPaymentId = razorpay_payment_id;
+  paymentRecord.razorpaySignature = razorpay_signature;
+  await paymentRecord.save({ session });
 
-  } catch (err) {
-    await session.abortTransaction();
-    session.endSession();
-    throw err;
-  }
+  await session.commitTransaction();
+  session.endSession();
+
+  return res.status(200).json({
+    groupBookingId,
+    message: "Booking confirmed successfully",
+  });
+
+} catch (err) {
+  await session.abortTransaction();
+  session.endSession();
+  throw err;
+}
+
 });
 
-export { Payment,verifyAndBook };
+const refundPayment = asyncHandler(async (req, res) => {
+  const { razorpay_payment_id, reason } = req.body;
+
+  // 1️⃣ Find payment record
+  const paymentRecord = await Payment.findOne({
+    razorpayPaymentId: razorpay_payment_id,
+  });
+
+  if (!paymentRecord) {
+    throw new ApiError(404, "Payment record not found");
+  }
+
+  // 2️⃣ Idempotency: already refunded
+  if (paymentRecord.status === "refunded") {
+    return res
+      .status(200)
+      .json(new ApiResponse(200, {}, "Payment already refunded"));
+  }
+
+  // 3️⃣ Call Razorpay refund API
+  const refund = await raypay.payments.refund(razorpay_payment_id, {
+    amount: paymentRecord.amount * 100,
+  });
+
+  // 4️⃣ Save refund record
+  await Refund.create({
+    paymentId: razorpay_payment_id,
+    razorpayRefundId: refund.id,
+    amount: paymentRecord.amount,
+    reason,
+  });
+
+  // 5️⃣ Update payment status
+  paymentRecord.status = "refunded";
+  await paymentRecord.save();
+
+  return res
+    .status(200)
+    .json(
+      new ApiResponse(
+        200,
+        { refundId: refund.id },
+        "Payment refunded successfully",
+      ),
+    );
+});
+
+export { pocessingPayment, verifyAndBook, refundPayment };

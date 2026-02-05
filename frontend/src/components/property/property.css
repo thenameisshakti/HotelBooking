@@ -5,6 +5,7 @@
   display: flex;
   justify-content: space-between;
   gap: 20px;
+  min-height: 220px;
 }
 
 .pListItem{
@@ -28,4 +29,44 @@
 .pListTitles>h2{
   font-size: 14px;
   font-weight: 300;
+}
+
+.pListContent {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.pListContent.show {
+  opacity: 1;
+}
+
+.pListLoading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  color: #666;
+
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+
+
+.pListContent {
+  opacity: 0;
+  transform: translateY(6px);
+  transition: opacity 0.4s ease, transform 0.4s ease;
+}
+
+.pListContent.show {
+  opacity: 1;
+  transform: translateY(0);
 }

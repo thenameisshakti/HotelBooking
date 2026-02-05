@@ -99,9 +99,6 @@ function Header({ type }) {
             <p className="headerDesc text-2xl">
               Search low prices on hotels, homes and much more...
             </p>
-              <button className="headerBtn mb-11 rounded-md">
-                SignIn/Register
-              </button>
               </>
             ): (
               <> 

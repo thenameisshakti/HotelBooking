@@ -5,18 +5,19 @@ import jwt from "jsonwebtoken"
 
 const verifyjwt =  async (req) => {
        try {
+        console.log(req.headers, "in the auth")
          const token = req.cookies?.accessToken || req.get("Authorization")?.replace("Bearer ","") || req.headers?.authorization?.replace("Bearer ", "");
-        console.log(token)
+        // console.log(token)
          if(!token) {
              throw new ApiError(401, "unautherized request")
  
          }
-         console.log("here")
+        //  console.log("here")
          const decodedToken = jwt.verify(token , process.env.ACCESS_TOKEN_SECRET)
 
-         console.log(decodedToken, "here")
+        //  console.log(decodedToken, "here")
          if (!decodedToken) {
-             throw new ApiError(402, " error in verifiction")
+             throw new ApiError(401, " error in verifiction")
          }
          
  
@@ -24,9 +25,9 @@ const verifyjwt =  async (req) => {
          
          
          if(!user){
-             throw new ApiError(403,"invalid access Token")
+             throw new ApiError(401,"invalid access Token")
          }
-         console.log("user verified in middleware" , user)
+        //  console.log("user verified in middleware" , user)
          return user
        } catch (error) {
         console.log("error in verify jwt", error.message )
@@ -40,7 +41,7 @@ const verifyjwt =  async (req) => {
 export const verifyUser = asyncHandler( async (req,res,next) => {
     try {
         const user = await verifyjwt(req)
-        console.log(user,"this is user")
+        // console.log(user,"this is user")
         req.user = user
         next()
     }catch (error){

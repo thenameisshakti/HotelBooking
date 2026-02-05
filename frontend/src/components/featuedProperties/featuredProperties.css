@@ -5,6 +5,7 @@
   display: flex;
   justify-content: space-between;
   gap: 20px;
+  min-height: 250px;
   z-index: 1;
 }
 
@@ -28,3 +29,36 @@
   bottom: 20px;
   left: 20px;
 }
+
+.featuredContent {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.featuredContent.show {
+  opacity: 1;
+}
+
+.featuredLoading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  color: #666;
+
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.featuredLoading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+

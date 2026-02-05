@@ -72,4 +72,10 @@ const bookingSchema = new mongoose.Schema(
   { timestamps: true }
 );
 bookingSchema.index({roomNumberId: 1, startDate: 1  , endDate: 1})
+
+bookingSchema.index({
+  userId: 1,
+  createdAt: -1
+});
+
 export const Booking = mongoose.model("Booking", bookingSchema);

@@ -1,0 +1,140 @@
+/* ================= BASE BUTTON ================= */
+
+.btn {
+  display: inline-flex;
+  align-items: center;
+  border: none;
+  background: transparent;
+  cursor: pointer;
+}
+
+/* ================= HOME BUTTON ================= */
+
+.btn-home {
+  position: relative;
+  font-size: clamp(14px, 1vw, 16px);
+}
+
+/* ================= GREY PLUS ================= */
+
+.btn_grey_plus {
+  position: relative;
+  display: inline-flex;
+  align-items: center;
+  gap: 0.5em;
+
+  background-color: #383934;
+  padding: 0.5em 1.2em 0.5em 0.7em;
+  border-radius: 1.6em 1.6em 0 1.6em;
+
+  z-index: 2;
+  transition: transform 0.4s ease;
+}
+
+/* ================= PLUS ICON ================= */
+
+i.fa.fa-plus-circle {
+  width: 1.25em;
+  height: 1.25em;
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+
+  background-color: #ffce05;
+  border-radius: 50%;
+
+  color: #000;
+  font-size: 1em;
+  font-weight: 700;
+  line-height: 1;
+
+  transition: transform 0.12s ease, box-shadow 0.12s ease;
+}
+
+/* ================= POLYGON CONNECTOR ================= */
+
+.shape_btn {
+  position: absolute;
+  left: 1.4em;
+  top: 0;
+
+  width: 2.4em;
+  height: 2.7em;
+
+  background-color: #0b0b0b;
+  clip-path: polygon(25% 0%, 100% 0%, 100% 100%, 67% 100%);
+
+  z-index: 1;
+  transition: transform 0.4s ease;
+}
+
+/* ================= BLACK PILL ================= */
+
+.btn_black {
+  position: relative;
+  padding: 0.6em 1.4em;
+  min-width: 6em;
+
+  background-color: #0b0b0b;
+  color: #fff;
+  border-radius: 0.7em;
+
+  margin-left: -0.8em;
+
+  z-index: 3;
+  transition: transform 0.4s ease, box-shadow 0.15s ease;
+}
+
+/* ================= DECORATIVE LINES ================= */
+
+.btn_black::before,
+.btn_black::after {
+  content: "";
+  position: absolute;
+  height: 1px;
+  width: 2em;
+  background: #1d1e1d;
+  transition: transform 0.4s ease;
+}
+
+.btn_black::before {
+  top: -0.2em;
+  right: 1em;
+}
+
+.btn_black::after {
+  bottom: -0.2em;
+  left: 1em;
+}
+
+/* ================= HOVER ================= */
+
+.btn-home:hover .btn_black {
+  box-shadow: 0 0.6em 1.4em rgba(0, 0, 0, 0.35);
+}
+
+.btn-home:hover .btn_black::before {
+  transform: translateX(-6em);
+}
+
+.btn-home:hover i.fa.fa-plus-circle{
+    transform: rotate(90deg);
+}
+
+.btn-home:hover .btn_black::after {
+  transform: translateX(6em);
+}
+
+.btn-home:hover .shape_btn {
+  transform: translateX(1.1em);
+}
+
+.btn-home:hover .btn_grey_plus {
+  transform: translateX(0.8em);
+}
+
+/* ================= ACTIVE (CLICK) ================= */
+
+.btn:active .btn_black {
+  transform: translate(0.1em, 0.2em);
+}
