@@ -5,6 +5,7 @@
   display: flex;
   justify-content: space-between;
   gap: 20px;
+  min-height: 420px; 
 }
 
 .fpItem{
@@ -45,3 +46,39 @@
 .fpRating>span{
   font-size: 14px;
 }
+
+.fpLoading {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+
+  font-weight: bold;
+  color: #666;
+  background: transparent;
+
+  opacity: 1;
+  transition: opacity 0.4s ease;
+}
+
+.fpLoading.hidden {
+  opacity: 0;
+  pointer-events: none;
+}
+
+
+.fpContent {
+  display: flex;
+  gap: 20px;
+  width: 100%;
+
+  opacity: 0;
+  transition: opacity 0.4s ease;
+}
+
+.fpContent.show {
+  opacity: 1;
+}
+
+

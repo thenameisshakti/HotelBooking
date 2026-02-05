@@ -7,6 +7,8 @@ import { Rooms } from "../modules/rooms.module.js";
 import { HotelsReview } from "../modules/hotelsReview.module.js";
 import {MAX_IMAGE_UPLOAD} from "../utils/constant.js";
 import mongoose from "mongoose";
+import { Lock } from "../modules/lock.modules.js";
+import { getDatesInRange } from "../utils/dateRange.js";
 
 
 const createHotel = asyncHandler(async (req, res) => {
@@ -243,22 +245,76 @@ const countByType = asyncHandler(async (req, res) => {
 });
 
 const getHotelRooms = asyncHandler(async (req, res) => {
-  const hotel = await Hotels.findById(req.params.hotelId);
+  const { startDate, endDate } = req.query;
+  const now = new Date();
 
+  const hotel = await Hotels.findById(req.params.hotelId);
   if (!hotel) {
-    throw new ApiError(404, "the hotel you are looking for is not present");
+    throw new ApiError(404, "Hotel not found");
   }
 
-  const list = await Promise.all(
-    hotel.rooms.map(async (room) => {
-      return await Rooms.findById(room).select(
-        "title roomNumbers maxPeople price "
-      );
-    })
+  const requestedDates = getDatesInRange(
+    new Date(startDate),
+    new Date(endDate)
   );
 
-  return res.status(200).json(new ApiResponse(200, list, "here all the rooms"));
+
+
+  const activeLocks = await Lock.find({
+    status: "hold",
+    expiresAt: { $gt: now },
+    startDate: { $lt: new Date(endDate) },
+    endDate: { $gt: new Date(startDate) }
+  }).select("roomNumberId");
+
+ 
+
+  const lockedRoomNumbers = activeLocks.map(l => l.roomNumberId);
+
+  console.log("lockedRoomIds:", lockedRoomNumbers);
+console.log("Type check:", typeof lockedRoomNumbers[0]);
+
+ const rooms = await Rooms.find({ _id: { $in: hotel.rooms } }).lean();
+
+const requestedDays = requestedDates.map(d =>
+  d.toISOString().split("T")[0]
+);
+
+const lockedSet = new Set(
+  lockedRoomNumbers.map(id => id.toString())
+);
+
+rooms.forEach(room => {
+  room.roomNumbers = room.roomNumbers.filter(rn => {
+    // 1️⃣ remove locked
+    if (lockedSet.has(rn._id.toString())) return false;
+
+    // 2️⃣ remove booked (calendar day check)
+    const bookedDays = rn.unavailableDates.map(d =>
+      new Date(d).toISOString().split("T")[0]
+    );
+
+    return !bookedDays.some(day =>
+      requestedDays.includes(day)
+    );
+  });
 });
+
+// remove rooms with no roomNumbers
+const availableRooms = rooms.filter(r => r.roomNumbers.length > 0);
+
+
+
+
+
+ console.log(rooms)
+
+  return res.status(200).json(
+    new ApiResponse(200, availableRooms , "Available rooms")
+  );
+});
+
+
 
 const reviewHotel = asyncHandler(async (req, res) => {
   const hotelId = req.params.hotelId;
@@ -357,6 +413,7 @@ hotel.reviewStats.categoryAverages.freeWifi =
   const hotelReview = await HotelsReview.create({
     hotelId: hotelId,
     userId: req.user._id,
+    groupBookingId: req.body.groupBookingId,
     rating,
     categoryRatings,
     description,

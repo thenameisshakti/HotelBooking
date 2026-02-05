@@ -16,6 +16,7 @@ import {
 } from "../controller/hotel.controller.js";
 import { verifyAdmin , verifyUser} from "../middlewares/auth.middleware.js";
 import { upload } from "../middlewares/multer.middleware.js";
+import { verifyBookingForReview } from "../middlewares/verifyUserBooking.middleware.js";
 
 const hotelsroute = Router();
 
@@ -36,13 +37,14 @@ hotelsroute.route("/city").get(countByCity);
 hotelsroute.route("/type").get(countByType);
 hotelsroute.route("/room/:hotelId").get(getHotelRooms); //hotelid 
 hotelsroute.route("/get/:hotelId").get(getHotel);
-hotelsroute.route("/review/:hotelId").post(verifyUser,
+hotelsroute.route("/review").post(verifyUser,
     upload.fields([
     {
       name: "photos",
       maxCount: 5,
     },
   ]),
+    verifyBookingForReview,
     reviewHotel);
 hotelsroute.route("/reviewUpdate/:reviewId").patch(verifyUser,
     upload.fields([

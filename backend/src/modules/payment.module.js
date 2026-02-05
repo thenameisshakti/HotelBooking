@@ -1,18 +1,60 @@
 import mongoose from "mongoose";
 
-const paymentSchema = new mongoose.Schema({
-    razorpay_order_id: {
-        type: String,
-        required: true,
+const paymentSchema = new mongoose.Schema(
+  {
+    userId: {
+      type: mongoose.Types.ObjectId,
+      ref: "Users",
+      required: true,
+      index: true
     },
-    razorpay_payment_id: {
-        type: String,
-        required: true,
-    },
-    razorpay_signature: {
-        type: String,
-        required: true,
-    },
-}, {timestamps: true})
 
-export const PaymentMDB = mongoose.model("Payment", paymentSchema)
+    razorpayOrderId: {
+      type: String,
+      required: true,
+      unique: true
+    },
+
+    razorpayPaymentId: {
+      type: String
+    },
+
+    razorpaySignature: {
+      type: String
+    },
+
+    lockIds: [
+      {
+        type: mongoose.Types.ObjectId,
+        ref: "Tempory_Lock",
+        required: true
+      }
+    ],
+
+    amount: {
+      type: Number,
+      required: true
+    },
+
+    currency: {
+      type: String,
+      default: "INR"
+    },
+
+    status: {
+      type: String,
+      enum: ["created", "captured", "expired", "refunded"],
+      default: "created"
+    },
+
+    expiresAt: {
+      type: Date,
+      required: true,
+      index: true
+    }
+  },
+  { timestamps: true }
+);
+
+const Payment = mongoose.model("Payment", paymentSchema);
+export default Payment

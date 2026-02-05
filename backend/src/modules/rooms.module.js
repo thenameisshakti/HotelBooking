@@ -1,7 +1,7 @@
 import mongoose , {model, Schema } from "mongoose";
 
 
-const roomShema = new Schema({
+const roomSchema = new Schema({
     title: {
         type: String,
         required: true
@@ -31,6 +31,12 @@ const roomShema = new Schema({
     }
 } , {timestamps: true})
 
-roomShema.index({"roomNumbers._id": 1})
+roomSchema.index({"roomNumbers._id": 1})
 
-export const Rooms = mongoose.model("Rooms", roomShema)
+
+roomSchema.index({
+  "roomNumbers.unavailableDates": 1
+});
+
+
+export const Rooms = mongoose.model("Rooms", roomSchema)

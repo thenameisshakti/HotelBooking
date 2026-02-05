@@ -11,6 +11,12 @@ const hotelReviewSchema = new mongoose.Schema({
         ref:'Users',
         required: true
     },
+   groupBookingId: {
+  type: String,
+  required: true,
+  unique: true
+},
+
     description: {
         type: String,
         required: true
@@ -39,6 +45,6 @@ const hotelReviewSchema = new mongoose.Schema({
 }, {timestamps: true}
 )
 
-hotelReviewSchema.index({ hotelId: 1, userId: 1 }, { unique: true });
+hotelReviewSchema.index({ groupBookingId:1 }, { unique: true });
 
 export const HotelsReview = mongoose.model("Hotels_Review", hotelReviewSchema);
